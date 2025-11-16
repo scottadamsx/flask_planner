@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>planner</title>
+</head>
+<body>
+    <h1>My Planner</h1>
+    <button id="newReminder" type="button">new reminder</button>
+    <form style="display:none">
+        <label>Name: </label>
+        <input type="text" title="name" id="name">
+        <label>Due: </label>
+        <input type="date" title="date" id="date">
+        <button type="button" id="addReminder">add reminder</button>
+    </form>
+    <script src="{{ url_for('static', filename='app.js')}}"></script>
+</body>
+</html>
