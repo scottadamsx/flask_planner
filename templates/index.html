@@ -15,6 +15,21 @@
         <input type="date" title="date" id="date">
         <button type="button" id="addReminder">add reminder</button>
     </form>
+    <h2>Reminders</h2>
+    <table>
+        <thead>
+            <th>Name</th>
+            <th>Due Date</th>
+        </thead>
+        <tbody>
+            {% for reminder in reminders %}
+                <tr>
+                    <td>{{reminder[0]}}</td>
+                    <td>{{reminder[1]}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     <script src="{{ url_for('static', filename='app.js')}}"></script>
 </body>
 </html>

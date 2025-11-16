@@ -8,5 +8,19 @@ newReminderBtn.addEventListener("click", () => {
 })
 
 addReminderBtn.addEventListener("click", () => {
-    form.style.display = "none"
+    const name = document.getElementById("name").value
+    const date = document.getElementById("date").value
+    // fetch statement to post to storage file
+    fetch('/newReminder', {
+        method:'post',
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({name,date})
+    })
+
+    // reload page
+    window.location.reload()
+
+    
 })
