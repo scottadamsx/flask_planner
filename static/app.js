@@ -28,7 +28,7 @@ newReminderBtn.addEventListener("click", () => {
     console.log(reminders)
 })
 
-addReminderBtn.addEventListener("click", () => {
+addReminderBtn.addEventListener("click", () => { 
     const name = document.getElementById("name").value
     const date = document.getElementById("date").value
     // fetch statement to post to storage file

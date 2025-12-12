@@ -14,7 +14,7 @@ def readReminders(FILENAME):
         for reminder in reader:
             reminders.append(reminder)
         return reminders
-    
+
 def saveToJSON(filename, new_data):
     try:
         with open(filename, "r") as f:
