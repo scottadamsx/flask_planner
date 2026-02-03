@@ -1,19 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>planner</title>
-    <link rel="stylesheet" href="./static/style.css">
-</head>
-<body>
-    <h1>My Planner</h1>
-    <nav>
-        <a href="/">Home</a>
-        <a href="journal">Journal</a>
-        <a href="reminders">Reminders</a>
-    </nav>
-    <button id="newReminder" type="button">new reminder</button>
+{% extends 'template.html' %}
+{% block content %}
+<button id="newReminder" type="button">new reminder</button>
     <form style="display:none">
         <label>Name: </label>
         <input type="text" title="name" id="name">
@@ -36,6 +23,4 @@
             {% endfor %}
         </tbody>
     </table>
-    <script src="{{ url_for('static', filename='app.js')}}" type="module"></script>
-</body>
-</html>
+    {% endblock %}

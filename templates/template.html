@@ -7,12 +7,20 @@
     <link rel="stylesheet" href="./static/style.css">
 </head>
 <body>
-    <h1>My Planner</h1>
-    <nav>
-        <a href="/">Home</a>
-        <a href="journal">Journal</a>
-        <a href="reminders">Reminders</a>
-    </nav>
+    <header>
+        <h1>My Planner</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="journal">Journal</a>
+            <a href="reminders">Reminders</a>
+        </nav>
+    </header>
+    <main>
+        {% block content %}
+        {# Child template content goes here #}
+        {% endblock %}
+    </main>
+    
     
     <script src="{{ url_for('static', filename='app.js')}}" type="module"></script>
 </body>

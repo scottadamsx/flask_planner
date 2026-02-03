@@ -14,7 +14,8 @@ def journal():
 
 @app.route("/reminders")
 def reminder():
-    return render_template("reminders.html")
+    reminders = loadFromJSON("reminders.json")
+    return render_template("reminders.html",reminders=reminders)
 
 
 @app.route("/newReminder", methods=["POST"])
