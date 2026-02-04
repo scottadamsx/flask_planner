@@ -1,4 +1,22 @@
-{% extends "template.html" %}
+{% extends 'template.html' %}
 {% block content %}
-<h1>Journal</h1>
+    <h1>My Journal</h1>
+    <button id="newJournalEntry" type="button">Add Entry</button>
+    <form id="form" style="display:none">
+        <label>Entry Title: </label>
+        <input type="text" title="name" id="name" placeholder="Give your entry a title...">
+        <label>Entry: </label>
+        <textarea title="entry" id="entry" placeholder="Write your thoughts..." rows="3"></textarea>
+        <div class="form-actions">
+            <button type="button" id="addEntry">Submit Entry</button>
+            <button type="button" id="cancelEntry" class="btn-secondary">Cancel</button>
+        </div>
+    </form>
+
+    <section id="entries-section">
+        <h2>Previous Entries</h2>
+        <div id="entries-list"></div>
+    </section>
+
+    <script src="{{ url_for('static', filename='journal.js')}}" type="module"></script>
 {% endblock %}

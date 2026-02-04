@@ -22,7 +22,6 @@ async function loadInReminders() {
 
 let reminders = await loadInReminders()
 
-
 newReminderBtn.addEventListener("click", () => {
     form.style.display = "block"
     console.log(reminders)

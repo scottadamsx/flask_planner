@@ -1,3 +1,4 @@
+import json
 from flask import Flask, render_template, request, jsonify
 from file import saveReminder, readReminders, saveToJSON, loadFromJSON
 app = Flask(__name__)
@@ -11,6 +12,20 @@ def home():
 @app.route("/journal")
 def journal():
     return render_template("journal.html")
+
+@app.route("/newJournalEntry", methods=["POST"])
+def newJournalEntry():
+    entry = request.get_json()
+    saveToJSON('journal.json', entry)
+    return "ok"
+
+@app.route("/loadJournal", methods=["GET"])
+def loadJournal():
+    try:
+        data = loadFromJSON("journal.json")
+    except (FileNotFoundError, json.JSONDecodeError):
+        data = []
+    return jsonify(data)
 
 @app.route("/reminders")
 def reminder():

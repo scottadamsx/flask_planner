@@ -1,6 +1,7 @@
 {% extends 'template.html' %}
 {% block content %}
-<button id="newReminder" type="button">new reminder</button>
+    <h1>Reminders</h1>
+    <button id="newReminder" type="button">new reminder</button>
     <form style="display:none">
         <label>Name: </label>
         <input type="text" title="name" id="name">
@@ -8,7 +9,6 @@
         <input type="date" title="date" id="date">
         <button type="button" id="addReminder">add reminder</button>
     </form>
-    <h2>Reminders</h2>
     <table>
         <thead>
             <th>Name</th>
@@ -23,4 +23,6 @@
             {% endfor %}
         </tbody>
     </table>
+    <script src="{{ url_for('static', filename='reminders.js')}}" type="module"></script>
+
     {% endblock %}

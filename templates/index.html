@@ -2,4 +2,28 @@
 {% block content %} <!-- this is what you use to add the child blocks, it requires an endblock -->
     <h1>This is home</h1>
     <p>An all in one inclusive planner app made my yours truly. Made with Flask. Fuck Django.</p>
+
+    <div id="game">
+        <div id="messageBox"></div>
+    <div id="playAgain"></div>
+    <table id="tictactoe">
+        <tr>
+            <td id="tl"></td>
+            <td id="tm"></td>
+            <td id="tr"></td>
+        </tr>
+        <tr>
+            <td id="ml"></td>
+            <td id="mm"></td>
+            <td id="mr"></td>
+        </tr>
+        <tr>
+            <td id="bl"></td>
+            <td id="bm"></td>
+            <td id="br"></td>
+        </tr>
+    </table>
+    <h3>Created by Scott Adams</h3>
+    <script src="{{ url_for('static', filename='tictactoe.js')}}"></script>
+    </div>
 {% endblock %}
