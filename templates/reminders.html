@@ -9,20 +9,49 @@
         <input type="date" title="date" id="date">
         <button type="button" id="addReminder">add reminder</button>
     </form>
+
+    <h2>Active Reminders</h2>
     <table>
         <thead>
             <th>Name</th>
             <th>Due Date</th>
+            <th>Actions</th>
         </thead>
         <tbody>
             {% for reminder in reminders %}
+                {% if not reminder.completed %}
                 <tr>
-                    <td>{{reminder.name}}</td>
-                    <td>{{reminder.date}}</td>
+                    <td>{{ reminder.name }}</td>
+                    <td>{{ reminder.date }}</td>
+                    <td class="action-cell">
+                        <button type="button" class="btn-complete" data-id="{{ reminder.id }}">Complete</button>
+                        <button type="button" class="btn-delete" data-id="{{ reminder.id }}">Delete</button>
+                    </td>
                 </tr>
+                {% endif %}
             {% endfor %}
         </tbody>
     </table>
-    <script src="{{ url_for('static', filename='reminders.js')}}" type="module"></script>
 
-    {% endblock %}
+    <h2>Completed</h2>
+    <table>
+        <thead>
+            <th>Name</th>
+            <th>Due Date</th>
+            <th>Completed On</th>
+        </thead>
+        <tbody>
+            {% for reminder in reminders %}
+                {% if reminder.completed %}
+                <tr class="completed-row">
+                    <td>{{ reminder.name }}</td>
+                    <td>{{ reminder.date }}</td>
+                    <td>{{ reminder.completedDate }}</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script src="{{ url_for('static', filename='reminders.js')}}" type="module"></script>
+{% endblock %}

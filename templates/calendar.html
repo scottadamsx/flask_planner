@@ -1,0 +1,33 @@
+{% extends 'template.html' %}
+{% block content %}
+    <h1>Calendar</h1>
+
+    <div id="calendar-controls">
+        <button type="button" id="prevMonth" class="btn-secondary">&larr; Prev</button>
+        <h2 id="monthLabel"></h2>
+        <button type="button" id="nextMonth" class="btn-secondary">Next &rarr;</button>
+    </div>
+
+    <div id="calendar-grid"></div>
+
+    <div id="event-form-overlay" style="display:none">
+        <div id="event-form-card">
+            <h3>Add Event on <span id="selectedDate"></span></h3>
+            <label>Title:</label>
+            <input type="text" id="eventTitle" placeholder="Event title...">
+            <label>Description (optional):</label>
+            <textarea id="eventDescription" placeholder="Details..." rows="2"></textarea>
+            <div class="form-actions">
+                <button type="button" id="saveEvent">Save Event</button>
+                <button type="button" id="cancelEvent" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <section id="completed-today">
+        <h2>Completed Today</h2>
+        <div id="completed-today-list"></div>
+    </section>
+
+    <script src="{{ url_for('static', filename='calendar.js')}}" type="module"></script>
+{% endblock %}

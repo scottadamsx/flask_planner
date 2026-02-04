@@ -392,3 +392,189 @@ textarea {
     color: var(--text-muted);
     font-style: italic;
 }
+
+/* --- Reminder Action Buttons --- */
+.action-cell {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-complete {
+    background-color: #10b981;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+}
+
+.btn-complete:hover {
+    background-color: #059669;
+}
+
+.btn-delete {
+    background-color: #ef4444;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+}
+
+.btn-delete:hover {
+    background-color: #dc2626;
+}
+
+.completed-row td {
+    text-decoration: line-through;
+    color: #94a3b8;
+}
+
+/* --- Calendar Controls --- */
+#calendar-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+#calendar-controls h2 {
+    min-width: 200px;
+    text-align: center;
+    font-size: 1.25rem;
+    color: var(--text-main);
+}
+
+/* --- Calendar Grid --- */
+.calendar-header-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background-color: #f1f5f9;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border: 1px solid #e2e8f0;
+    border-bottom: none;
+}
+
+.calendar-day-name {
+    padding: 0.75rem;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-main);
+}
+
+.calendar-body {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border: 1px solid #e2e8f0;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    background-color: var(--bg-surface);
+    box-shadow: var(--shadow-md);
+}
+
+.calendar-cell {
+    min-height: 100px;
+    padding: 0.5rem;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    overflow: hidden;
+}
+
+.calendar-cell:hover {
+    background-color: #f8fafc;
+}
+
+.calendar-cell.empty {
+    background-color: #fafafa;
+    cursor: default;
+}
+
+.calendar-cell.today {
+    background-color: #eff6ff;
+    border-color: var(--primary-color);
+}
+
+.day-number {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.calendar-item {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    margin-top: 3px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reminder-item {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.event-item {
+    background-color: #fce7f3;
+    color: #9d174d;
+}
+
+/* --- Event Form Overlay --- */
+#event-form-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+}
+
+#event-form-card {
+    background-color: var(--bg-surface);
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    width: 100%;
+    max-width: 450px;
+}
+
+#event-form-card h3 {
+    margin-bottom: 1rem;
+    color: var(--text-main);
+}
+
+#event-form-card label {
+    margin-top: 0.75rem;
+}
+
+/* --- Completed Today Section --- */
+#completed-today {
+    margin-top: 2.5rem;
+}
+
+#completed-today h2 {
+    font-size: 1.25rem;
+    color: var(--text-main);
+    margin-bottom: 1rem;
+}
+
+.completed-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: var(--bg-surface);
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    margin-bottom: 0.5rem;
+}
+
+.completed-name {
+    font-weight: 600;
+    color: #10b981;
+}
+
+.completed-date {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}

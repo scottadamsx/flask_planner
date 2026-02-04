@@ -27,7 +27,7 @@ newReminderBtn.addEventListener("click", () => {
     console.log(reminders)
 })
 
-addReminderBtn.addEventListener("click", () => { 
+addReminderBtn.addEventListener("click", () => {
     const name = document.getElementById("name").value
     const date = document.getElementById("date").value
     // fetch statement to post to storage file
@@ -42,4 +42,31 @@ addReminderBtn.addEventListener("click", () => {
     // reload page
     window.location.reload()
 
+})
+
+// Complete button handlers
+document.querySelectorAll(".btn-complete").forEach(btn => {
+    btn.addEventListener("click", async () => {
+        const id = btn.dataset.id
+        await fetch("/completeReminder", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id })
+        })
+        window.location.reload()
+    })
+})
+
+// Delete button handlers
+document.querySelectorAll(".btn-delete").forEach(btn => {
+    btn.addEventListener("click", async () => {
+        const id = btn.dataset.id
+        if (!confirm("Delete this reminder?")) return
+        await fetch("/deleteReminder", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id })
+        })
+        window.location.reload()
+    })
 })
