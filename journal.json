@@ -3,5 +3,10 @@
         "title": "First Entry",
         "entry": "Hello world! I am testing out my first journal app with a backend that actually stores data!! Consistent data storage is one of the biggest ways of learning development because that's essentially what a backend does :)",
         "date": "2026-02-03"
+    },
+    {
+        "title": "Today Started Badly",
+        "entry": "Hey Journal, I find it much easier to journal on the computer because I'm just so much faster typing on a keyboard. Last night I hit my pen and \"chilled\" for a bit.\n\nI woke up this morning earlier than normal. It was 7:15 by the time I finally got out of bed, and I didn't have to rush, which was quite nice. I had breakfast, which was nice. Then grandma came out and told me it was garbage day, and I should probably take the trash out, so I did. Then the driveway needed to be shoveled because the plow had come by, so I did that. Just like that all my free time that I had allocated for waking up earlier was gone. I couldn't sit and enjoy my morning time, which frustrated me to my core. \n\nI came to the office, and was the first one here. Mike, Tim, and Josh are here aswell now so I should probably get to work soon. I will update you, I'm happy you're here journal.",
+        "date": "2026-02-04"
     }
 ]

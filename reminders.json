@@ -1,15 +1,8 @@
 [
     {
-        "name": "Reminder 1",
+        "name": "Go to the gym",
         "date": "2026-02-04",
-        "id": "7a9097c6",
-        "completed": false,
-        "completedDate": null
-    },
-    {
-        "name": "Scott Adams",
-        "date": "2026-02-28",
-        "id": "cae925a3",
+        "id": "4c62ffaf",
         "completed": false,
         "completedDate": null
     }
