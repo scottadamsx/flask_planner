@@ -1,0 +1,65 @@
+# Flask
+instance/
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Flask instance folder (common for configs/databases)
+instance/
+
+# Environment variables
+.env
+.env.local
+.flaskenv
+*.env
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Storage/uploads (your user-uploaded files)
+journal.json
+reminders.json
+uploads/
+static/uploads/
+media/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flask session files
+flask_session/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# pytest
+.pytest_cache/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
