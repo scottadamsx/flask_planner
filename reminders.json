@@ -19,5 +19,21 @@
         "id": "16c56516",
         "completed": false,
         "completedDate": null
+    },
+    {
+        "name": "Take the trash out",
+        "date": "2026-03-09",
+        "recurrence": "weekly",
+        "id": "be11e48b",
+        "completed": false,
+        "completedDate": null
+    },
+    {
+        "name": "Clean Washroom",
+        "date": "2026-03-12",
+        "recurrence": "weekly",
+        "id": "7cc84a90",
+        "completed": false,
+        "completedDate": null
     }
 ]

@@ -6,6 +6,16 @@ from file import saveToJSON, loadFromJSON, updateItemInJSON, deleteFromJSON, gen
 app = Flask(__name__)
 migrateReminders("reminders.json")
 
+@app.template_filter('format_date')
+def format_date_filter(date_str):
+    if not date_str:
+        return ""
+    try:
+        dt = date.fromisoformat(date_str)
+        return dt.strftime("%A, %B %d, %Y").lower()
+    except Exception:
+        return date_str
+
 # ──────────────────────────────────────────
 # Helper: load JSON safely
 # ──────────────────────────────────────────
@@ -83,6 +93,58 @@ def calculate_pay_period(transaction_date_str, pay_schedule):
     return start.isoformat(), end.isoformat()
 
 
+def expand_reminders(reminders, start_dt, end_dt):
+    expanded = []
+    for r in reminders:
+        if r.get("completed"):
+            continue
+        
+        recur = r.get("recurrence", "none")
+        try:
+            r_dt = date.fromisoformat(r["date"])
+        except:
+            continue
+        
+        if recur == "none":
+            if start_dt <= r_dt <= end_dt:
+                expanded.append(r)
+        elif recur == "daily":
+            cur = max(start_dt, r_dt)
+            while cur <= end_dt:
+                copy = r.copy()
+                copy["date"] = cur.isoformat()
+                expanded.append(copy)
+                cur += timedelta(days=1)
+        elif recur == "weekly":
+            cur = r_dt
+            while cur <= end_dt:
+                if cur >= start_dt:
+                    copy = r.copy()
+                    copy["date"] = cur.isoformat()
+                    expanded.append(copy)
+                cur += timedelta(days=7)
+        elif recur == "monthly":
+            # Check next 12 months for occurrences in range
+            for m_offset in range(13):
+                y = r_dt.year + (r_dt.month + m_offset - 1) // 12
+                m = (r_dt.month + m_offset - 1) % 12 + 1
+                try:
+                    if m == 12:
+                        next_m_first = date(y + 1, 1, 1)
+                    else:
+                        next_m_first = date(y, m + 1, 1)
+                    last_day_val = (next_m_first - timedelta(days=1)).day
+                    d = min(r_dt.day, last_day_val)
+                    candidate = date(y, m, d)
+                    if candidate > end_dt: break
+                    if candidate >= start_dt and candidate >= r_dt:
+                        copy = r.copy()
+                        copy["date"] = candidate.isoformat()
+                        expanded.append(copy)
+                except:
+                    continue
+    return expanded
+
 # ──────────────────────────────────────────
 # Existing pages
 # ──────────────────────────────────────────
@@ -92,17 +154,36 @@ def home():
     journal = safe_load("journal.json")
     config = safe_load_config()
     
-    # Sort reminders by date, get top 3 incomplete
-    incomplete_reminders = [r for r in reminders if not r.get("completed")]
-    incomplete_reminders.sort(key=lambda x: x.get("date", ""))
-    top_reminders = incomplete_reminders[:3]
+    today = date.today()
+    
+    # Weekly chunks for the reminder scroll
+    # We'll calculate 4 weeks: This Week, Next Week, and 2 more
+    weeks = []
+    # Start of current week (assuming Sunday start for display)
+    start_of_week = today - timedelta(days=today.weekday() + 1) if today.weekday() != 6 else today
+    
+    for i in range(4):
+        w_start = start_of_week + timedelta(weeks=i)
+        w_end = w_start + timedelta(days=6)
+        w_reminders = expand_reminders(reminders, w_start, w_end)
+        w_reminders.sort(key=lambda x: x["date"])
+        
+        label = "This Week" if i == 0 else "Next Week" if i == 1 else f"Week of {w_start.strftime('%b %d')}"
+        weeks.append({
+            "label": label,
+            "reminders": w_reminders
+        })
+
+    # Today's tasks specifically
+    today_reminders = expand_reminders(reminders, today, today)
     
     # Get last journal entry
     last_entry = journal[-1] if journal else None
     
     return render_template("index.html", 
                            reminders=reminders, 
-                           top_reminders=top_reminders,
+                           today_reminders=today_reminders,
+                           weeks=weeks,
                            last_entry=last_entry,
                            budget_config=config)
 
@@ -135,6 +216,8 @@ def newReminder():
     reminder["id"] = generateId()
     reminder["completed"] = False
     reminder["completedDate"] = None
+    if "recurrence" not in reminder:
+        reminder["recurrence"] = "none"
     saveToJSON('reminders.json', reminder)
     return "ok"
 

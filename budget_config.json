@@ -13,7 +13,15 @@
         "Debt",
         "Other"
     ],
-    "income": [],
+    "income": [
+        {
+            "name": "TxtSquad",
+            "amount": 740,
+            "frequency": "biweekly",
+            "nextDate": "2026-03-13",
+            "id": "f9530d02"
+        }
+    ],
     "paySchedule": {
         "type": "biweekly",
         "anchorDate": "2026-03-13",

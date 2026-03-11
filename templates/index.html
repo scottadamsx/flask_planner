@@ -10,25 +10,74 @@
     <!-- Reminders Widget -->
     <div class="db-card col-8">
         <div class="db-card-header">
-            <h3 class="db-card-title"><i class="fa-solid fa-list-check"></i> Upcoming Reminders</h3>
+            <h3 class="db-card-title"><i class="fa-solid fa-list-check"></i> Tasks & Reminders</h3>
             <a href="/reminders" class="db-card-action">View All</a>
         </div>
-        <div class="db-list">
-            {% if top_reminders %}
-            {% for r in top_reminders %}
-            <div class="db-list-item">
-                <div class="db-list-item-icon">
-                    <i class="fa-solid fa-clock"></i>
-                </div>
-                <div class="db-list-item-content">
-                    <div class="db-list-item-title">{{ r.text }}</div>
-                    <div class="db-list-item-subtitle">{{ r.date }}</div>
+
+        <div class="todo-sections">
+            <!-- Today Section -->
+            <div class="todo-section" style="margin-bottom: 2rem;">
+                <h4
+                    style="font-size: 0.85rem; color: var(--primary); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    To Do Today</h4>
+                <div class="db-list">
+                    {% if today_reminders %}
+                    {% for r in today_reminders %}
+                    <div class="db-list-item">
+                        <div class="db-list-item-icon"><i class="fa-solid fa-calendar-day"></i></div>
+                        <div class="db-list-item-content">
+                            <div class="db-list-item-title">{{ r.name or r.text }}</div>
+                            {% if r.recurrence and r.recurrence != 'none' %}
+                            <div class="db-list-item-subtitle" style="color: var(--primary-light); font-weight: 600;">
+                                recurring</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-tertiary" style="font-size: 0.85rem;">Nothing scheduled for today.</p>
+                    {% endif %}
                 </div>
             </div>
-            {% endfor %}
-            {% else %}
-            <p class="text-tertiary">All caught up! No pending reminders.</p>
-            {% endif %}
+
+            <!-- Weekly Scroll Section -->
+            <div class="todo-section">
+                <h4
+                    style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; text-transform: uppercase;">
+                    Upcoming by Week</h4>
+                <div class="weekly-scroll-container"
+                    style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 1rem; scroll-snap-type: x mandatory;">
+                    {% for week in weeks %}
+                    <div class="weekly-card"
+                        style="min-width: 250px; flex: 0 0 250px; scroll-snap-align: start; background: var(--bg); padding: 1rem; border-radius: calc(var(--radius) - 4px); border: 1px solid var(--border);">
+                        <div
+                            style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color: var(--text);">
+                            {{ week.label }}</div>
+                        <div class="db-list">
+                            {% if week.reminders %}
+                            {% for r in week.reminders %}
+                            <div class="db-list-item" style="padding: 0.5rem 0;">
+                                <div class="db-list-item-content">
+                                    <div class="db-list-item-title" style="font-size: 0.85rem;">{{ r.name or r.text }}
+                                    </div>
+                                    <div class="db-list-item-subtitle" style="font-size: 0.7rem;">{{ r.date |
+                                        format_date }}</div>
+                                    {% if r.recurrence and r.recurrence != 'none' %}
+                                    <div class="db-list-item-subtitle"
+                                        style="color: var(--primary-light); font-weight: 600; font-size: 0.65rem;">
+                                        recurring</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <p class="text-tertiary" style="font-size: 0.8rem;">No tasks this week.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     </div>
 
@@ -63,7 +112,8 @@
             <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem;">{{ last_entry.title }}</div>
             <p class="text-secondary" style="font-size: 0.85rem; line-height: 1.5;">{{ last_entry.content|truncate(150)
                 }}</p>
-            <div class="text-tertiary" style="font-size: 0.75rem; margin-top: 0.75rem;">{{ last_entry.date }}</div>
+            <div class="text-tertiary" style="font-size: 0.75rem; margin-top: 0.75rem;">{{ last_entry.date | format_date
+                }}</div>
         </div>
         {% else %}
         <p class="text-tertiary">No journal entries yet. Start your journey today.</p>

@@ -13,6 +13,7 @@ let editingBillId = null
 let sortColumn = "date"
 let sortAsc = false
 let simRows = []
+let moneyChart = null
 
 // ── Utility ──
 function formatMoney(amount) {
@@ -20,7 +21,7 @@ function formatMoney(amount) {
 }
 
 function toDateStr(d) {
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 function parseDate(s) {
@@ -144,7 +145,7 @@ function getCurrentPeriod() {
 function formatPeriodLabel(start, end) {
     const s = parseDate(start)
     const e = parseDate(end)
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     return `${months[s.getMonth()]} ${s.getDate()} – ${months[e.getMonth()]} ${e.getDate()}, ${e.getFullYear()}`
 }
 
@@ -152,47 +153,49 @@ function formatPeriodLabel(start, end) {
 // RECURRING BILL DATE COMPUTATION
 // ================================================================
 function getBillDatesInRange(bill, startStr, endStr) {
-    const start = parseDate(startStr)
-    const end = parseDate(endStr)
+    const startRange = parseDate(startStr)
+    const endRange = parseDate(endStr)
     const dates = []
     const freq = bill.frequency || "monthly"
-    const dom = bill.dayOfMonth || 1
+    const startDt = parseDate(bill.startDate || toDateStr(new Date()))
+
+    let cur = new Date(startDt)
 
     if (freq === "monthly") {
-        let cur = new Date(start.getFullYear(), start.getMonth(), 1)
-        for (let i = 0; i < 14; i++) {
-            const m = new Date(cur.getFullYear(), cur.getMonth(), 1)
-            const lastDay = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate()
-            const day = Math.min(dom, lastDay)
-            const candidate = new Date(m.getFullYear(), m.getMonth(), day)
-            if (candidate >= start && candidate <= end) dates.push(toDateStr(candidate))
-            cur.setMonth(cur.getMonth() + 1)
+        // Move to first possible occurrence after or equal to startRange
+        // but keeping the day from startDt
+        let scan = new Date(startDt)
+        // Optimization: loop through 24 months Max
+        for (let i = 0; i < 24; i++) {
+            if (scan > endRange) break
+            if (scan >= startRange) {
+                dates.push(toDateStr(scan))
+            }
+            scan.setMonth(scan.getMonth() + 1)
+            // Handle month end differences (e.g. 31st)
+            const expectedMonth = (startDt.getMonth() + i + 1) % 12
+            if (scan.getMonth() !== expectedMonth) {
+                scan.setDate(0) // pull back to last day of previous month
+            }
         }
     } else if (freq === "weekly") {
-        let cur = new Date(start)
-        while (cur <= end) {
-            dates.push(toDateStr(cur))
+        while (cur <= endRange) {
+            if (cur >= startRange) dates.push(toDateStr(cur))
             cur.setDate(cur.getDate() + 7)
         }
     } else if (freq === "biweekly") {
-        let cur = new Date(start)
-        while (cur <= end) {
-            dates.push(toDateStr(cur))
+        while (cur <= endRange) {
+            if (cur >= startRange) dates.push(toDateStr(cur))
             cur.setDate(cur.getDate() + 14)
         }
-    } else if (freq === "quarterly") {
-        let cur = new Date(start.getFullYear(), start.getMonth(), 1)
-        for (let i = 0; i < 6; i++) {
-            const lastDay = new Date(cur.getFullYear(), cur.getMonth() + 1, 0).getDate()
-            const day = Math.min(dom, lastDay)
-            const candidate = new Date(cur.getFullYear(), cur.getMonth(), day)
-            if (candidate >= start && candidate <= end) dates.push(toDateStr(candidate))
-            cur.setMonth(cur.getMonth() + 3)
-        }
     } else if (freq === "yearly") {
-        for (let y = start.getFullYear(); y <= end.getFullYear(); y++) {
-            const candidate = new Date(y, start.getMonth(), Math.min(dom, new Date(y, start.getMonth() + 1, 0).getDate()))
-            if (candidate >= start && candidate <= end) dates.push(toDateStr(candidate))
+        while (cur <= endRange) {
+            if (cur >= startRange) dates.push(toDateStr(cur))
+            const expectedMonth = cur.getMonth()
+            cur.setFullYear(cur.getFullYear() + 1)
+            if (cur.getMonth() !== expectedMonth) {
+                cur.setDate(0)
+            }
         }
     }
     return dates
@@ -257,10 +260,10 @@ function renderDashboard() {
 
     // Income from income sources
     let incomeTotal = 0
-    ;(config.income || []).forEach(inc => {
-        const dates = getIncomeDatesInRange(inc, period.start, period.end)
-        incomeTotal += dates.length * inc.amount
-    })
+        ; (config.income || []).forEach(inc => {
+            const dates = getIncomeDatesInRange(inc, period.start, period.end)
+            incomeTotal += dates.length * inc.amount
+        })
     // Plus income-type transactions
     incomeTotal += periodTx.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0)
 
@@ -268,18 +271,18 @@ function renderDashboard() {
 
     // Bills — exclude those already logged as expenses
     let billsTotal = 0
-    ;(config.recurringBills || []).forEach(bill => {
-        const dates = getBillDatesInRange(bill, period.start, period.end)
-        dates.forEach(bd => {
-            const alreadyLogged = periodTx.some(t =>
-                t.type === "expense" &&
-                t.description.toLowerCase().includes(bill.name.toLowerCase()) &&
-                Math.abs(t.amount - bill.amount) < 1 &&
-                Math.abs((parseDate(t.date) - parseDate(bd)) / 86400000) <= 3
-            )
-            if (!alreadyLogged) billsTotal += bill.amount
+        ; (config.recurringBills || []).forEach(bill => {
+            const dates = getBillDatesInRange(bill, period.start, period.end)
+            dates.forEach(bd => {
+                const alreadyLogged = periodTx.some(t =>
+                    t.type === "expense" &&
+                    t.description.toLowerCase().includes(bill.name.toLowerCase()) &&
+                    Math.abs(t.amount - bill.amount) < 1 &&
+                    Math.abs((parseDate(t.date) - parseDate(bd)) / 86400000) <= 3
+                )
+                if (!alreadyLogged) billsTotal += bill.amount
+            })
         })
-    })
 
     const planned = periodTx.filter(t => t.type === "future").reduce((s, t) => s + t.amount, 0)
     const remaining = incomeTotal - spent - billsTotal - planned
@@ -294,6 +297,42 @@ function renderDashboard() {
             <span class="card-label">Remaining</span><span class="card-value">${formatMoney(remaining)}</span>
         </div>
     `
+
+    // Unpaid/Manual Bills
+    const unpaidDiv = document.getElementById("unpaidBills")
+    const unpaidList = []
+        ; (config.recurringBills || []).forEach(bill => {
+            const dates = getBillDatesInRange(bill, period.start, period.end)
+            dates.forEach(bd => {
+                const alreadyLogged = periodTx.some(t =>
+                    t.type === "expense" &&
+                    t.description.toLowerCase().includes(bill.name.toLowerCase()) &&
+                    Math.abs(t.amount - bill.amount) < 1 &&
+                    Math.abs((parseDate(t.date) - parseDate(bd)) / 86400000) <= 3
+                )
+                if (!alreadyLogged) {
+                    unpaidList.push({ ...bill, date: bd })
+                }
+            })
+        })
+
+    if (unpaidList.length === 0) {
+        unpaidDiv.innerHTML = '<p class="no-entries">All bills for this period are paid!</p>'
+    } else {
+        unpaidDiv.innerHTML = unpaidList.map(b => `
+            <div class="recent-row" style="cursor: default;">
+                <div style="display:flex; flex-direction:column;">
+                    <span class="recent-desc" style="font-weight:600;">${escapeHtml(b.name)}</span>
+                    <span style="font-size:0.75rem; color:var(--text-tertiary)">Due: ${b.date}</span>
+                </div>
+                <div style="text-align:right;">
+                    <div class="recent-amount amount-expense" style="margin-bottom:0.25rem;">${formatMoney(b.amount)}</div>
+                    ${b.autoPay ? '<span class="category-badge" style="background:rgba(34,197,94,0.1); color:var(--primary);">Auto</span>'
+                : `<button class="btn btn-sm" onclick="payBill('${escapeHtml(b.name)}', ${b.amount}, '${b.date}', '${escapeHtml(b.category)}')">Pay Now</button>`}
+                </div>
+            </div>
+        `).join('')
+    }
 
     // Category breakdown
     const catTotals = {}
@@ -310,8 +349,8 @@ function renderDashboard() {
     } else {
         catBreakdown.innerHTML = cats.map(([cat, amt]) => `
             <div class="cat-row">
-                <div class="cat-info"><span class="cat-name">${escapeHtml(cat)}</span><span class="cat-amount">${formatMoney(amt)} (${Math.round(amt/totalSpent*100)}%)</span></div>
-                <div class="cat-bar-bg"><div class="cat-bar" style="width:${(amt/maxCat*100).toFixed(1)}%"></div></div>
+                <div class="cat-info"><span class="cat-name">${escapeHtml(cat)}</span><span class="cat-amount">${formatMoney(amt)} (${Math.round(amt / totalSpent * 100)}%)</span></div>
+                <div class="cat-bar-bg"><div class="cat-bar" style="width:${(amt / maxCat * 100).toFixed(1)}%"></div></div>
             </div>
         `).join('')
     }
@@ -337,6 +376,147 @@ function renderDashboard() {
             })
         })
     }
+
+    // Money In vs Money Out Line Chart
+    const chartEl = document.getElementById('moneyChart')
+    if (chartEl) {
+        const ctx = chartEl.getContext('2d');
+        if (moneyChart) moneyChart.destroy();
+
+        const slider = document.getElementById('chartRangeSlider');
+        const sliderLabel = document.getElementById('chartRangeValue');
+        const timeline = document.getElementById('chartTimeline').value;
+        const maxVal = slider ? parseInt(slider.value) : 15000;
+
+        if (sliderLabel) sliderLabel.textContent = formatMoney(maxVal).split('.')[0];
+
+        // Determine chart range
+        let chartStart, chartEnd;
+        if (timeline === 'period') {
+            chartStart = period.start;
+            chartEnd = period.end;
+        } else {
+            const months = parseInt(timeline);
+            const start = new Date();
+            const end = new Date();
+            end.setMonth(end.getMonth() + months);
+            chartStart = toDateStr(start);
+            chartEnd = toDateStr(end);
+        }
+
+        // Generate datasets for the chart range
+        const labels = [];
+        const inData = [];
+        const outData = [];
+
+        // We need transactions within the chart range for trend line
+        const rangeTx = transactions.filter(t => t.date >= chartStart && t.date <= chartEnd);
+
+        let cur = parseDate(chartStart);
+        const endDt = parseDate(chartEnd);
+
+        let cumulativeIn = 0;
+        let cumulativeOut = 0;
+
+        while (cur <= endDt) {
+            const dStr = toDateStr(cur);
+            labels.push(dStr.split('-').slice(1).join('/')); // simplified date MM/DD
+
+            // Day Income
+            let dayIn = 0;
+            (config.income || []).forEach(inc => {
+                if (getIncomeDatesInRange(inc, dStr, dStr).length > 0) dayIn += inc.amount;
+            });
+            dayIn += rangeTx.filter(t => t.date === dStr && t.type === 'income').reduce((s, t) => s + t.amount, 0);
+            cumulativeIn += dayIn;
+            inData.push(cumulativeIn);
+
+            // Day Out
+            let dayOut = 0;
+            (config.recurringBills || []).forEach(bill => {
+                if (getBillDatesInRange(bill, dStr, dStr).length > 0) dayOut += bill.amount;
+            });
+            dayOut += rangeTx.filter(t => t.date === dStr && (t.type === 'expense' || t.type === 'future')).reduce((s, t) => s + t.amount, 0);
+            cumulativeOut += dayOut;
+            outData.push(cumulativeOut);
+
+            cur.setDate(cur.getDate() + 1);
+        }
+
+        moneyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Money In',
+                        data: inData,
+                        borderColor: 'rgba(34, 197, 94, 1)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Money Out',
+                        data: outData,
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: maxVal,
+                        ticks: {
+                            callback: (val) => '$' + val.toLocaleString()
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: (context) => ` ${context.dataset.label}: ${formatMoney(context.raw)}`
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Chart Range/Timeline Listeners
+document.addEventListener('input', (e) => {
+    if (e.target.id === 'chartRangeSlider') {
+        renderDashboard();
+    }
+});
+document.addEventListener('change', (e) => {
+    if (e.target.id === 'chartTimeline') {
+        renderDashboard();
+    }
+});
+
+window.payBill = async function (name, amount, date, category) {
+    if (!confirm(`Mark "${name}" as paid on ${date}?`)) return
+    await post("/newTransaction", {
+        description: `Bill: ${name}`,
+        amount: amount,
+        type: "expense",
+        category: category,
+        date: date,
+        notes: "Automatically logged from dashboard"
+    })
+    await loadAll()
+    renderDashboard()
 }
 
 document.getElementById("prevPeriod").addEventListener("click", () => { currentPeriodOffset--; renderDashboard() })
@@ -354,7 +534,7 @@ function populateCategoryDropdowns() {
         document.getElementById("oneTimeIncomeCategory")
     ]
     selectors.forEach(sel => {
-        if (!sel) return
+        if (!sel || sel.tagName !== 'SELECT') return
         const current = sel.value
         const isFilter = sel.id === "filterCategory"
         sel.innerHTML = isFilter ? '<option value="all">All Categories</option>' : ''
@@ -430,7 +610,7 @@ function renderTransactions() {
 }
 
 // Expose to onclick handlers
-window.editTransaction = function(id) {
+window.editTransaction = function (id) {
     const tx = transactions.find(t => t.id === id)
     if (!tx) return
     editingTransactionId = id
@@ -445,13 +625,13 @@ window.editTransaction = function(id) {
     document.getElementById("transactionFormWrapper").style.display = ''
 }
 
-window.convertFuture = async function(id) {
+window.convertFuture = async function (id) {
     await post("/convertFuturePurchase", { id, date: toDateStr(new Date()) })
     await loadAll()
     renderTransactions()
 }
 
-window.deleteTx = async function(id) {
+window.deleteTx = async function (id) {
     if (!confirm("Delete this transaction?")) return
     await post("/deleteTransaction", { id })
     await loadAll()
@@ -545,9 +725,9 @@ function renderReconcileContent() {
     // Summary
     const income = periodTx.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0)
     let incFromSources = 0
-    ;(config.income || []).forEach(inc => {
-        incFromSources += getIncomeDatesInRange(inc, period.start, period.end).length * inc.amount
-    })
+        ; (config.income || []).forEach(inc => {
+            incFromSources += getIncomeDatesInRange(inc, period.start, period.end).length * inc.amount
+        })
     const totalIncome = income + incFromSources
     const totalExpenses = periodTx.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0)
     const reconciledTotal = reconciled.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0)
@@ -603,19 +783,19 @@ function renderReconcileContent() {
     }
 }
 
-window.reconcileOne = async function(id) {
+window.reconcileOne = async function (id) {
     await post("/reconcileTransaction", { id })
     await loadAll()
     renderReconcileContent()
 }
 
-window.unreconcileOne = async function(id) {
+window.unreconcileOne = async function (id) {
     await post("/unreconcileTransaction", { id })
     await loadAll()
     renderReconcileContent()
 }
 
-document.getElementById("selectAllUnreconciled").addEventListener("change", function() {
+document.getElementById("selectAllUnreconciled").addEventListener("change", function () {
     document.querySelectorAll(".recon-check").forEach(cb => cb.checked = this.checked)
 })
 
@@ -659,7 +839,7 @@ function renderPaySchedule() {
     upcoming.innerHTML = '<p style="margin-top:1rem;color:var(--text-muted);font-size:0.9rem">Upcoming paydays: <strong>' + dates.join(', ') + '</strong></p>'
 }
 
-document.getElementById("payFrequency").addEventListener("change", function() {
+document.getElementById("payFrequency").addEventListener("change", function () {
     document.getElementById("customDaysWrapper").style.display = this.value === "custom" ? '' : 'none'
 })
 
@@ -734,7 +914,7 @@ document.getElementById("submitIncome").addEventListener("click", async () => {
     renderIncomeTable()
 })
 
-window.editIncome = function(id) {
+window.editIncome = function (id) {
     const inc = (config.income || []).find(i => i.id === id)
     if (!inc) return
     editingIncomeId = id
@@ -746,7 +926,7 @@ window.editIncome = function(id) {
     document.getElementById("incomeFormWrapper").style.display = ''
 }
 
-window.deleteIncome = async function(id) {
+window.deleteIncome = async function (id) {
     if (!confirm("Delete this income source?")) return
     await post("/deleteIncome", { id })
     await loadAll()
@@ -767,8 +947,10 @@ document.getElementById("cancelOneTimeIncome").addEventListener("click", () => {
 function resetOneTimeIncomeForm() {
     document.getElementById("oneTimeIncomeName").value = ''
     document.getElementById("oneTimeIncomeAmount").value = ''
+    document.getElementById("oneTimeIncomeCategory").value = ''
     document.getElementById("oneTimeIncomeDate").value = toDateStr(new Date())
-    document.getElementById("oneTimeIncomeNotes").value = ''
+    const notesEl = document.getElementById("oneTimeIncomeNotes")
+    if (notesEl) notesEl.value = ''
 }
 
 document.getElementById("submitOneTimeIncome").addEventListener("click", async () => {
@@ -809,7 +991,7 @@ function renderOneTimeIncomeList() {
     `).join('')
 }
 
-window.deleteOneTimeIncome = async function(id) {
+window.deleteOneTimeIncome = async function (id) {
     if (!confirm("Delete this income entry?")) return
     await post("/deleteTransaction", { id })
     await loadAll()
@@ -833,7 +1015,7 @@ function renderBillsTable() {
             <td>${formatMoney(b.amount)}</td>
             <td><span class="category-badge">${escapeHtml(b.category)}</span></td>
             <td>${b.frequency}</td>
-            <td>${b.dayOfMonth}</td>
+            <td>${b.startDate}</td>
             <td>${b.autoPay ? 'Yes' : 'No'}</td>
             <td class="action-cell">
                 <button type="button" class="btn-sm btn-secondary" onclick="editBill('${b.id}')">Edit</button>
@@ -858,7 +1040,7 @@ function resetBillForm() {
     editingBillId = null
     document.getElementById("billName").value = ''
     document.getElementById("billAmount").value = ''
-    document.getElementById("billDayOfMonth").value = '1'
+    document.getElementById("billStartDate").value = toDateStr(new Date())
     document.querySelector('input[name="billAutoPay"][value="true"]').checked = true
     document.getElementById("billNotes").value = ''
 }
@@ -868,15 +1050,15 @@ document.getElementById("submitBill").addEventListener("click", async () => {
     const amount = parseFloat(document.getElementById("billAmount").value)
     const category = document.getElementById("billCategory").value
     const frequency = document.getElementById("billFrequency").value
-    const dayOfMonth = parseInt(document.getElementById("billDayOfMonth").value) || 1
+    const startDate = document.getElementById("billStartDate").value
     const autoPay = document.querySelector('input[name="billAutoPay"]:checked').value === "true"
     const notes = document.getElementById("billNotes").value.trim()
-    if (!name || isNaN(amount) || amount <= 0) return
+    if (!name || isNaN(amount) || amount <= 0 || !startDate) return
 
     if (editingBillId) {
-        await post("/updateRecurringBill", { id: editingBillId, name, amount, category, frequency, dayOfMonth, autoPay, notes })
+        await post("/updateRecurringBill", { id: editingBillId, name, amount, category, frequency, startDate, autoPay, notes })
     } else {
-        await post("/addRecurringBill", { name, amount, category, frequency, dayOfMonth, autoPay, notes })
+        await post("/addRecurringBill", { name, amount, category, frequency, startDate, autoPay, notes })
     }
     document.getElementById("billFormWrapper").style.display = 'none'
     resetBillForm()
@@ -884,7 +1066,7 @@ document.getElementById("submitBill").addEventListener("click", async () => {
     renderBillsTable()
 })
 
-window.editBill = function(id) {
+window.editBill = function (id) {
     const bill = (config.recurringBills || []).find(b => b.id === id)
     if (!bill) return
     editingBillId = id
@@ -893,13 +1075,13 @@ window.editBill = function(id) {
     document.getElementById("billAmount").value = bill.amount
     document.getElementById("billCategory").value = bill.category
     document.getElementById("billFrequency").value = bill.frequency
-    document.getElementById("billDayOfMonth").value = bill.dayOfMonth
+    document.getElementById("billStartDate").value = bill.startDate || toDateStr(new Date())
     document.querySelector(`input[name="billAutoPay"][value="${bill.autoPay}"]`).checked = true
     document.getElementById("billNotes").value = bill.notes || ''
     document.getElementById("billFormWrapper").style.display = ''
 }
 
-window.deleteBill = async function(id) {
+window.deleteBill = async function (id) {
     if (!confirm("Delete this recurring bill?")) return
     await post("/deleteRecurringBill", { id })
     await loadAll()
@@ -915,7 +1097,7 @@ function renderCategories() {
     `).join('')
 }
 
-window.removeCategory = async function(cat) {
+window.removeCategory = async function (cat) {
     const used = transactions.some(t => t.category === cat)
     if (used && !confirm(`"${cat}" is used by existing transactions. Delete anyway?`)) return
     config.categories = config.categories.filter(c => c !== cat)
@@ -958,21 +1140,21 @@ document.getElementById("generateProjection").addEventListener("click", () => {
 
     simRows = [{ date: startDate, description: "Starting Balance", income: 0, expense: 0, isManual: false }]
 
-    // Add income rows
-    ;(config.income || []).forEach(inc => {
-        const dates = getIncomeDatesInRange(inc, startDate, endDate)
-        dates.forEach(d => {
-            simRows.push({ date: d, description: `Payday - ${inc.name}`, income: inc.amount, expense: 0, isManual: false })
+        // Add income rows
+        ; (config.income || []).forEach(inc => {
+            const dates = getIncomeDatesInRange(inc, startDate, endDate)
+            dates.forEach(d => {
+                simRows.push({ date: d, description: `Payday - ${inc.name}`, income: inc.amount, expense: 0, isManual: false })
+            })
         })
-    })
 
-    // Add bill rows
-    ;(config.recurringBills || []).forEach(bill => {
-        const dates = getBillDatesInRange(bill, startDate, endDate)
-        dates.forEach(d => {
-            simRows.push({ date: d, description: `Bill - ${bill.name}`, income: 0, expense: bill.amount, isManual: false })
+        // Add bill rows
+        ; (config.recurringBills || []).forEach(bill => {
+            const dates = getBillDatesInRange(bill, startDate, endDate)
+            dates.forEach(d => {
+                simRows.push({ date: d, description: `Bill - ${bill.name}`, income: 0, expense: bill.amount, isManual: false })
+            })
         })
-    })
 
     // Sort by date
     simRows.sort((a, b) => a.date.localeCompare(b.date))
@@ -1034,7 +1216,7 @@ function renderSimGrid() {
     }
 }
 
-window.simCellChange = function(idx, field, value) {
+window.simCellChange = function (idx, field, value) {
     if (field === 'income' || field === 'expense') value = parseFloat(value) || 0
     simRows[idx][field] = value
     if (field === 'date') simRows.sort((a, b) => a.date.localeCompare(b.date))
@@ -1044,7 +1226,7 @@ window.simCellChange = function(idx, field, value) {
     renderSimGrid()
 }
 
-window.deleteSimRow = function(idx) {
+window.deleteSimRow = function (idx) {
     simRows.splice(idx, 1)
     const startBal = simRows.length > 0 && simRows[0].description === "Starting Balance" ? simRows[0].balance : 0
     recalcSimBalances(startBal)
@@ -1095,7 +1277,7 @@ function renderSimSavedList() {
     })
 }
 
-document.getElementById("loadSimSelect").addEventListener("change", function() {
+document.getElementById("loadSimSelect").addEventListener("change", function () {
     const sim = simulations.find(s => s.id === this.value)
     if (!sim) return
     document.getElementById("simStartBalance").value = sim.startingBalance

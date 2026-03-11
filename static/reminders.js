@@ -30,13 +30,14 @@ newReminderBtn.addEventListener("click", () => {
 addReminderBtn.addEventListener("click", () => {
     const name = document.getElementById("name").value
     const date = document.getElementById("date").value
+    const recurrence = document.getElementById("recurrence").value
     // fetch statement to post to storage file
     fetch('/newReminder', {
         method:'post',
         headers:{
             "Content-Type":"application/json"
         },
-        body:JSON.stringify({name:name,date:date})
+        body:JSON.stringify({name:name,date:date,recurrence:recurrence})
     })
 
     // reload page

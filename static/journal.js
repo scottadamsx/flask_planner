@@ -40,7 +40,7 @@ submitBtn.addEventListener("click", async () => {
     const entry = {
         title: title,
         entry: body,
-        date: new Date().toLocaleDateString()
+        date: new Date().toISOString().split('T')[0]
     }
 
     await fetch("/newJournalEntry", {
@@ -70,9 +70,29 @@ async function loadEntries() {
         const card = document.createElement("div")
         card.className = "journal-card"
 
+        let displayDate = entry.date
+        try {
+            const dateParts = entry.date.split('/')
+            let d
+            if (dateParts.length === 3) {
+                // Handle old format MM/DD/YYYY or similar if it exists
+                d = new Date(dateParts[2], dateParts[0] - 1, dateParts[1])
+            } else {
+                d = new Date(entry.date)
+            }
+            displayDate = d.toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }).toLowerCase()
+        } catch (e) {
+            console.error("Date parse error", e)
+        }
+
         const header = document.createElement("div")
         header.className = "journal-card-header"
-        header.innerHTML = `<h3>${entry.title}</h3><span class="journal-date">${entry.date}</span>`
+        header.innerHTML = `<h3>${entry.title}</h3><span class="journal-date">${displayDate}</span>`
 
         const body = document.createElement("p")
         body.className = "journal-card-body"

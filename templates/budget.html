@@ -26,16 +26,44 @@
 
     <div class="summary-cards" id="summaryCards"></div>
 
+    <div class="db-card" style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="margin: 0;"><i class="fa-solid fa-chart-line text-primary"></i> Financial Trend</h3>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <label style="font-size: 0.8rem; color: var(--text-secondary);">Chart Limit:</label>
+                <input type="range" id="chartRangeSlider" min="1000" max="50000" step="1000" value="15000"
+                    style="width: 150px;">
+                <span id="chartRangeValue" style="font-size: 0.85rem; font-weight: 700; min-width: 60px;">$15,000</span>
+
+                <label style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 1rem;">View:</label>
+                <select id="chartTimeline" class="btn btn-secondary btn-sm"
+                    style="background: var(--bg); border: 1px solid var(--border);">
+                    <option value="period">Pay Period</option>
+                    <option value="1">1 Month</option>
+                    <option value="3" selected>3 Months</option>
+                </select>
+            </div>
+        </div>
+        <div style="height: 300px; width: 100%;">
+            <canvas id="moneyChart"></canvas>
+        </div>
+    </div>
+
     <div class="dashboard-grid">
-        <div class="dashboard-left db-card">
+        <div class="db-card">
             <h3 style="margin-bottom: 1.25rem;"><i class="fa-solid fa-chart-pie text-primary"></i> Category Breakdown
             </h3>
             <div id="categoryBreakdown"></div>
         </div>
-        <div class="dashboard-right db-card">
+        <div class="db-card">
+            <h3 style="margin-bottom: 1.25rem;"><i class="fa-solid fa-hand-holding-dollar text-red"></i> Bills to Pay
+            </h3>
+            <div id="unpaidBills"></div>
+        </div>
+        <div class="db-card" style="grid-column: span 2;">
             <h3 style="margin-bottom: 1.25rem;"><i class="fa-solid fa-receipt text-primary"></i> Recent Transactions
             </h3>
-            <div id="recentTransactions"></div>
+            <div id="recentTransactions" class="dashboard-recent"></div>
         </div>
     </div>
 </div>
@@ -279,8 +307,8 @@
                             <input type="number" id="oneTimeIncomeAmount" step="0.01" min="0" placeholder="0.00">
                         </div>
                         <div class="form-group">
-                            <label>Category</label>
-                            <select id="oneTimeIncomeCategory"></select>
+                            <label>Payment Source / Category</label>
+                            <input type="text" id="oneTimeIncomeCategory" placeholder="e.g. Side Hustle, Gift, etc.">
                         </div>
                         <div class="form-group">
                             <label>Date Received</label>
@@ -351,8 +379,8 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Day of Month</label>
-                            <input type="number" id="billDayOfMonth" min="1" max="31" step="1" value="1">
+                            <label>Start Date</label>
+                            <input type="date" id="billStartDate">
                         </div>
                         <div class="form-group">
                             <label>Auto-Pay</label>

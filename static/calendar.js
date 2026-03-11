@@ -85,27 +85,70 @@ function getBillDatesForMonth(year, month) {
 }
 
 function toDateStr(d) {
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// Compute recurring reminder dates for a given month
+function getReminderDatesForMonth(year, month) {
+    const results = []
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+
+    allReminders.forEach(reminder => {
+        if (reminder.completed) return
+
+        const recur = reminder.recurrence || "none"
+        const rDate = new Date(reminder.date)
+
+        if (recur === "none") {
+            if (rDate.getFullYear() === year && rDate.getMonth() === month) {
+                results.push({ date: toDateStr(rDate), name: reminder.name || reminder.text })
+            }
+        } else if (recur === "daily") {
+            let cur = new Date(year, month, 1)
+            if (rDate > cur) cur = new Date(rDate)
+            while (cur <= lastDay) {
+                results.push({ date: toDateStr(cur), name: reminder.name || reminder.text })
+                cur.setDate(cur.getDate() + 1)
+            }
+        } else if (recur === "weekly") {
+            let cur = new Date(rDate)
+            while (cur <= lastDay) {
+                if (cur >= firstDay) {
+                    results.push({ date: toDateStr(cur), name: reminder.name || reminder.text })
+                }
+                cur.setDate(cur.getDate() + 7)
+            }
+        } else if (recur === "monthly") {
+            const day = rDate.getDate()
+            const candidate = new Date(year, month, Math.min(day, lastDay.getDate()))
+            if (candidate >= rDate) {
+                results.push({ date: toDateStr(candidate), name: reminder.name || reminder.text })
+            }
+        }
+    })
+    return results
 }
 
 // Render the month grid
 function renderCalendar() {
-    const monthNames = ["January","February","March","April","May","June",
-                        "July","August","September","October","November","December"]
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"]
     monthLabel.textContent = `${monthNames[currentMonth]} ${currentYear}`
 
     const firstDay = new Date(currentYear, currentMonth, 1).getDay()
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
 
     const today = new Date()
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
+    const todayStr = toDateStr(today)
 
     // Get budget items for the month
     const billDates = getBillDatesForMonth(currentYear, currentMonth)
     const futurePurchases = allTransactions.filter(t => t.type === "future")
+    const reminderDates = getReminderDatesForMonth(currentYear, currentMonth)
 
     let html = '<div class="calendar-header-row">'
-    const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     dayNames.forEach(d => { html += `<div class="calendar-day-name">${d}</div>` })
     html += '</div><div class="calendar-body">'
 
@@ -116,10 +159,10 @@ function renderCalendar() {
 
     // Day cells
     for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
         const isToday = dateStr === todayStr ? ' today' : ''
 
-        const dayReminders = allReminders.filter(r => r.date === dateStr && !r.completed)
+        const dayReminders = reminderDates.filter(r => r.date === dateStr)
         const dayEvents = allEvents.filter(e => e.date === dateStr)
         const dayBills = billDates.filter(b => b.date === dateStr)
         const dayFuture = futurePurchases.filter(t => t.date === dateStr)
@@ -170,7 +213,7 @@ function renderCalendar() {
 // Render Completed Today section
 function renderCompletedToday() {
     const today = new Date()
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
     const completedToday = allReminders.filter(r => r.completed && r.completedDate === todayStr)
 
     if (completedToday.length === 0) {
@@ -182,8 +225,14 @@ function renderCompletedToday() {
     completedToday.forEach(r => {
         const div = document.createElement("div")
         div.className = "completed-item"
-        div.innerHTML = `<span class="completed-name">${r.name}</span>
-                         <span class="completed-date">was due ${r.date}</span>`
+        const formattedDate = new Date(r.date).toLocaleDateString(undefined, {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }).toLowerCase()
+        div.innerHTML = `<span class="completed-name">${r.name || r.text}</span>
+                         <span class="completed-date">was due ${formattedDate}</span>`
         completedTodayList.appendChild(div)
     })
 }

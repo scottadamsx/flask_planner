@@ -1,0 +1,26 @@
+[
+    {
+        "description": "Movie Date",
+        "amount": 45,
+        "type": "expense",
+        "category": "Personal",
+        "date": "2026-03-11",
+        "notes": "date money",
+        "id": "656d51b7",
+        "reconciled": false,
+        "payPeriodStart": "2026-02-27",
+        "payPeriodEnd": "2026-03-12"
+    },
+    {
+        "description": "Bill: Food",
+        "amount": 100,
+        "type": "expense",
+        "category": "Groceries",
+        "date": "2026-03-11",
+        "notes": "Automatically logged from dashboard",
+        "id": "a4422871",
+        "reconciled": false,
+        "payPeriodStart": "2026-02-27",
+        "payPeriodEnd": "2026-03-12"
+    }
+]
