@@ -1,0 +1,347 @@
+{% extends 'template.html' %}
+{% block content %}
+    <h1>Budget</h1>
+
+    <div class="budget-tabs">
+        <button class="budget-tab active" data-tab="dashboard">Dashboard</button>
+        <button class="budget-tab" data-tab="transactions">Transactions</button>
+        <button class="budget-tab" data-tab="reconcile">Reconcile</button>
+        <button class="budget-tab" data-tab="bills-income">Bills & Income</button>
+        <button class="budget-tab" data-tab="simulator">Simulator</button>
+    </div>
+
+    <!-- ========== DASHBOARD TAB ========== -->
+    <div class="tab-panel active" id="panel-dashboard">
+        <div id="period-nav">
+            <button type="button" class="btn-secondary" id="prevPeriod">&larr; Prev</button>
+            <h2 id="periodLabel"></h2>
+            <button type="button" class="btn-secondary" id="nextPeriod">Next &rarr;</button>
+        </div>
+
+        <div class="summary-cards" id="summaryCards"></div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-left">
+                <h3>Category Breakdown</h3>
+                <div id="categoryBreakdown"></div>
+            </div>
+            <div class="dashboard-right">
+                <h3>Recent Transactions</h3>
+                <div id="recentTransactions"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== TRANSACTIONS TAB ========== -->
+    <div class="tab-panel" id="panel-transactions">
+        <div class="transactions-toolbar">
+            <button type="button" id="logTransactionBtn">+ Log Transaction</button>
+            <div class="filter-controls">
+                <select id="filterType">
+                    <option value="all">All Types</option>
+                    <option value="expense">Expenses</option>
+                    <option value="income">Income</option>
+                    <option value="future">Planned</option>
+                </select>
+                <select id="filterCategory">
+                    <option value="all">All Categories</option>
+                </select>
+                <input type="date" id="filterFrom" title="From date">
+                <input type="date" id="filterTo" title="To date">
+            </div>
+        </div>
+
+        <div id="transactionFormWrapper" style="display:none">
+            <div class="budget-form-card">
+                <h3 id="transFormTitle">Log Transaction</h3>
+                <label>Description:</label>
+                <input type="text" id="txDesc" placeholder="What was it for?" required>
+                <label>Amount:</label>
+                <input type="number" id="txAmount" step="0.01" min="0" placeholder="0.00" required>
+                <label>Type:</label>
+                <div class="radio-group">
+                    <label class="radio-label"><input type="radio" name="txType" value="expense" checked> Expense</label>
+                    <label class="radio-label"><input type="radio" name="txType" value="income"> Income</label>
+                    <label class="radio-label"><input type="radio" name="txType" value="future"> Planned</label>
+                </div>
+                <label>Category:</label>
+                <select id="txCategory"></select>
+                <label>Date:</label>
+                <input type="date" id="txDate">
+                <label>Notes:</label>
+                <textarea id="txNotes" placeholder="Optional notes..." rows="2"></textarea>
+                <div class="form-actions">
+                    <button type="button" id="submitTransaction">Save</button>
+                    <button type="button" id="cancelTransaction" class="btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <table id="transactionsTable">
+            <thead>
+                <tr>
+                    <th class="sortable" data-sort="date">Date</th>
+                    <th class="sortable" data-sort="description">Description</th>
+                    <th class="sortable" data-sort="category">Category</th>
+                    <th class="sortable" data-sort="amount">Amount</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="transactionsBody"></tbody>
+        </table>
+        <p id="noTransactions" class="no-entries" style="display:none">No transactions yet. Log your first purchase!</p>
+    </div>
+
+    <!-- ========== RECONCILE TAB ========== -->
+    <div class="tab-panel" id="panel-reconcile">
+        <div class="reconcile-controls">
+            <label>Pay Period:</label>
+            <select id="reconcilePeriod"></select>
+            <button type="button" id="reconcileSelectedBtn">Reconcile Selected</button>
+        </div>
+
+        <div class="reconcile-summary" id="reconcileSummary"></div>
+
+        <h3>Unreconciled</h3>
+        <table id="unreconciledTable">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAllUnreconciled"></th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="unreconciledBody"></tbody>
+        </table>
+        <p id="noUnreconciled" class="no-entries" style="display:none">All transactions reconciled!</p>
+
+        <details class="reconciled-section">
+            <summary><h3 style="display:inline">Reconciled</h3></summary>
+            <table id="reconciledTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="reconciledBody"></tbody>
+            </table>
+            <p id="noReconciled" class="no-entries" style="display:none">No reconciled transactions in this period.</p>
+        </details>
+    </div>
+
+    <!-- ========== BILLS & INCOME TAB ========== -->
+    <div class="tab-panel" id="panel-bills-income">
+
+        <details class="config-section" open>
+            <summary><h3 style="display:inline">Pay Schedule</h3></summary>
+            <div class="budget-form-card">
+                <label>Pay Frequency:</label>
+                <select id="payFrequency">
+                    <option value="biweekly">Biweekly (Every 2 weeks)</option>
+                    <option value="semimonthly">Semimonthly (1st & 15th)</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="custom">Custom</option>
+                </select>
+                <label>Anchor Date (a known payday):</label>
+                <input type="date" id="anchorDate">
+                <div id="customDaysWrapper" style="display:none">
+                    <label>Days between pay:</label>
+                    <input type="number" id="customDays" min="1" step="1">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="saveScheduleBtn">Save Schedule</button>
+                </div>
+                <div id="upcomingPaydays"></div>
+            </div>
+        </details>
+
+        <details class="config-section" open>
+            <summary><h3 style="display:inline">Income Sources</h3></summary>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
+                <button type="button" id="addIncomeBtn" class="btn-sm">+ Recurring Income</button>
+                <button type="button" id="addOneTimeIncomeBtn" class="btn-sm btn-secondary">+ One-Time Income</button>
+            </div>
+            <div id="incomeFormWrapper" style="display:none">
+                <div class="budget-form-card">
+                    <h4 id="incomeFormTitle">Add Income Source</h4>
+                    <label>Name:</label>
+                    <input type="text" id="incomeName" placeholder="e.g. Part-time job">
+                    <label>Amount per pay:</label>
+                    <input type="number" id="incomeAmount" step="0.01" min="0" placeholder="0.00">
+                    <label>Frequency:</label>
+                    <select id="incomeFrequency">
+                        <option value="biweekly">Biweekly</option>
+                        <option value="semimonthly">Semimonthly</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                    <label>Next Payment Date:</label>
+                    <input type="date" id="incomeNextDate">
+                    <div class="form-actions">
+                        <button type="button" id="submitIncome">Save</button>
+                        <button type="button" id="cancelIncome" class="btn-secondary">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            <div id="oneTimeIncomeFormWrapper" style="display:none">
+                <div class="budget-form-card">
+                    <h4>Log One-Time Income</h4>
+                    <label>Description:</label>
+                    <input type="text" id="oneTimeIncomeName" placeholder="e.g. Tax return, birthday gift, sold item">
+                    <label>Amount:</label>
+                    <input type="number" id="oneTimeIncomeAmount" step="0.01" min="0" placeholder="0.00">
+                    <label>Category:</label>
+                    <select id="oneTimeIncomeCategory"></select>
+                    <label>Date Received:</label>
+                    <input type="date" id="oneTimeIncomeDate">
+                    <label>Notes:</label>
+                    <textarea id="oneTimeIncomeNotes" placeholder="Optional..." rows="2"></textarea>
+                    <div class="form-actions">
+                        <button type="button" id="submitOneTimeIncome">Save</button>
+                        <button type="button" id="cancelOneTimeIncome" class="btn-secondary">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            <table id="incomeTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Amount</th>
+                        <th>Frequency</th>
+                        <th>Next Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="incomeBody"></tbody>
+            </table>
+            <p id="noIncome" class="no-entries" style="display:none">No recurring income sources configured.</p>
+
+            <h4 style="margin-top:1.25rem">One-Time Income History</h4>
+            <div id="oneTimeIncomeList"></div>
+            <p id="noOneTimeIncome" class="no-entries" style="display:none">No one-time income logged yet.</p>
+        </details>
+
+        <details class="config-section" open>
+            <summary><h3 style="display:inline">Recurring Bills</h3></summary>
+            <button type="button" id="addBillBtn" class="btn-sm">+ Add Bill</button>
+            <div id="billFormWrapper" style="display:none">
+                <div class="budget-form-card">
+                    <h4 id="billFormTitle">Add Recurring Bill</h4>
+                    <label>Name:</label>
+                    <input type="text" id="billName" placeholder="e.g. Rent">
+                    <label>Amount:</label>
+                    <input type="number" id="billAmount" step="0.01" min="0" placeholder="0.00">
+                    <label>Category:</label>
+                    <select id="billCategory"></select>
+                    <label>Frequency:</label>
+                    <select id="billFrequency">
+                        <option value="monthly">Monthly</option>
+                        <option value="biweekly">Biweekly</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="yearly">Yearly</option>
+                        <option value="quarterly">Quarterly</option>
+                    </select>
+                    <label>Day of Month:</label>
+                    <input type="number" id="billDayOfMonth" min="1" max="31" step="1" value="1">
+                    <label>Auto-Pay:</label>
+                    <div class="radio-group">
+                        <label class="radio-label"><input type="radio" name="billAutoPay" value="true" checked> Yes</label>
+                        <label class="radio-label"><input type="radio" name="billAutoPay" value="false"> No</label>
+                    </div>
+                    <label>Notes:</label>
+                    <textarea id="billNotes" placeholder="Optional..." rows="2"></textarea>
+                    <div class="form-actions">
+                        <button type="button" id="submitBill">Save</button>
+                        <button type="button" id="cancelBill" class="btn-secondary">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            <table id="billsTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Amount</th>
+                        <th>Category</th>
+                        <th>Frequency</th>
+                        <th>Day</th>
+                        <th>Auto-Pay</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="billsBody"></tbody>
+            </table>
+            <p id="noBills" class="no-entries" style="display:none">No recurring bills configured.</p>
+        </details>
+
+        <details class="config-section" open>
+            <summary><h3 style="display:inline">Categories</h3></summary>
+            <div class="categories-container" id="categoriesContainer"></div>
+            <div class="add-category-row">
+                <input type="text" id="newCategoryInput" placeholder="New category name...">
+                <button type="button" id="addCategoryBtn" class="btn-sm">+ Add</button>
+            </div>
+        </details>
+    </div>
+
+    <!-- ========== SIMULATOR TAB ========== -->
+    <div class="tab-panel" id="panel-simulator">
+        <div class="sim-setup">
+            <div class="sim-field">
+                <label>Starting Balance:</label>
+                <input type="number" id="simStartBalance" step="0.01" placeholder="0.00">
+            </div>
+            <div class="sim-field">
+                <label>Start Date:</label>
+                <input type="date" id="simStartDate">
+            </div>
+            <div class="sim-field">
+                <label>End Date:</label>
+                <input type="date" id="simEndDate">
+            </div>
+            <button type="button" id="generateProjection">Generate Projection</button>
+        </div>
+
+        <div id="simWarning" class="sim-warning" style="display:none"></div>
+
+        <div class="sim-grid-wrapper">
+            <table id="simGrid" class="sim-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Income (+)</th>
+                        <th>Expense (-)</th>
+                        <th>Balance</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="simBody"></tbody>
+            </table>
+        </div>
+        <p id="noSimData" class="no-entries">Configure settings above and click "Generate Projection" to start.</p>
+
+        <div class="sim-actions" id="simActions" style="display:none">
+            <button type="button" id="addSimRow">+ Add Row</button>
+            <button type="button" id="exportCsv" class="btn-secondary">Export CSV</button>
+            <button type="button" id="saveSimBtn">Save Simulation</button>
+            <div class="sim-load">
+                <select id="loadSimSelect">
+                    <option value="">Load Saved...</option>
+                </select>
+                <button type="button" id="deleteSimBtn" class="btn-delete btn-sm">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='budget.js')}}" type="module"></script>
+{% endblock %}

@@ -3,6 +3,13 @@
         "name": "Go to the gym",
         "date": "2026-02-04",
         "id": "4c62ffaf",
+        "completed": true,
+        "completedDate": "2026-03-10"
+    },
+    {
+        "name": "Laundry",
+        "date": "2026-03-12",
+        "id": "e973f57b",
         "completed": false,
         "completedDate": null
     }

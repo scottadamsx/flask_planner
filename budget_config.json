@@ -1,0 +1,34 @@
+{
+    "categories": [
+        "Housing",
+        "Groceries",
+        "Transportation",
+        "Utilities",
+        "Entertainment",
+        "Dining Out",
+        "Personal",
+        "Subscriptions",
+        "Health",
+        "Savings",
+        "Debt",
+        "Other"
+    ],
+    "income": [],
+    "paySchedule": {
+        "type": "biweekly",
+        "anchorDate": "2026-03-13",
+        "customDays": null
+    },
+    "recurringBills": [
+        {
+            "name": "Food",
+            "amount": 100,
+            "category": "Groceries",
+            "frequency": "weekly",
+            "dayOfMonth": 1,
+            "autoPay": false,
+            "notes": "This is for the house.",
+            "id": "eddbc73c"
+        }
+    ]
+}

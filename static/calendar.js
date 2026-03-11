@@ -4,6 +4,8 @@ let currentMonth = new Date().getMonth()
 let selectedDate = null
 let allReminders = []
 let allEvents = []
+let budgetConfig = null
+let allTransactions = []
 
 // DOM refs
 const monthLabel = document.getElementById("monthLabel")
@@ -24,6 +26,66 @@ async function loadAllData() {
     ])
     allReminders = remindersRes
     allEvents = eventsRes
+
+    // Load budget data (graceful if budget not set up yet)
+    try {
+        const [cfgRes, txRes] = await Promise.all([
+            fetch("/loadBudgetConfig").then(r => r.json()),
+            fetch("/loadTransactions").then(r => r.json())
+        ])
+        budgetConfig = cfgRes
+        allTransactions = txRes
+    } catch {
+        budgetConfig = null
+        allTransactions = []
+    }
+}
+
+// Compute recurring bill dates for a given month
+function getBillDatesForMonth(year, month) {
+    if (!budgetConfig || !budgetConfig.recurringBills) return []
+    const results = []
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const startStr = toDateStr(firstDay)
+    const endStr = toDateStr(lastDay)
+
+    budgetConfig.recurringBills.forEach(bill => {
+        const freq = bill.frequency || "monthly"
+        const dom = bill.dayOfMonth || 1
+
+        if (freq === "monthly") {
+            const day = Math.min(dom, lastDay.getDate())
+            const d = new Date(year, month, day)
+            results.push({ date: toDateStr(d), name: bill.name, amount: bill.amount })
+        } else if (freq === "weekly") {
+            let cur = new Date(firstDay)
+            while (cur <= lastDay) {
+                results.push({ date: toDateStr(cur), name: bill.name, amount: bill.amount })
+                cur.setDate(cur.getDate() + 7)
+            }
+        } else if (freq === "biweekly") {
+            let cur = new Date(firstDay)
+            while (cur <= lastDay) {
+                results.push({ date: toDateStr(cur), name: bill.name, amount: bill.amount })
+                cur.setDate(cur.getDate() + 14)
+            }
+        } else if (freq === "quarterly") {
+            if (month % 3 === 0) {
+                const day = Math.min(dom, lastDay.getDate())
+                results.push({ date: toDateStr(new Date(year, month, day)), name: bill.name, amount: bill.amount })
+            }
+        } else if (freq === "yearly") {
+            const day = Math.min(dom, lastDay.getDate())
+            const candidate = new Date(year, month, day)
+            results.push({ date: toDateStr(candidate), name: bill.name, amount: bill.amount })
+        }
+    })
+    return results
+}
+
+function toDateStr(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 }
 
 // Render the month grid
@@ -37,6 +99,10 @@ function renderCalendar() {
 
     const today = new Date()
     const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
+
+    // Get budget items for the month
+    const billDates = getBillDatesForMonth(currentYear, currentMonth)
+    const futurePurchases = allTransactions.filter(t => t.type === "future")
 
     let html = '<div class="calendar-header-row">'
     const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
@@ -55,6 +121,8 @@ function renderCalendar() {
 
         const dayReminders = allReminders.filter(r => r.date === dateStr && !r.completed)
         const dayEvents = allEvents.filter(e => e.date === dateStr)
+        const dayBills = billDates.filter(b => b.date === dateStr)
+        const dayFuture = futurePurchases.filter(t => t.date === dateStr)
 
         let itemsHtml = ''
         dayReminders.forEach(r => {
@@ -62,6 +130,12 @@ function renderCalendar() {
         })
         dayEvents.forEach(e => {
             itemsHtml += `<div class="calendar-item event-item">${e.title}</div>`
+        })
+        dayBills.forEach(b => {
+            itemsHtml += `<div class="calendar-item bill-item">${b.name} $${b.amount}</div>`
+        })
+        dayFuture.forEach(f => {
+            itemsHtml += `<div class="calendar-item future-item">${f.description}</div>`
         })
 
         html += `<div class="calendar-cell${isToday}" data-date="${dateStr}">
@@ -71,6 +145,15 @@ function renderCalendar() {
     }
 
     html += '</div>'
+
+    // Legend
+    html += `<div class="calendar-legend">
+        <span><span class="legend-dot legend-blue"></span> Reminder</span>
+        <span><span class="legend-dot legend-pink"></span> Event</span>
+        <span><span class="legend-dot legend-red"></span> Bill</span>
+        <span><span class="legend-dot legend-orange"></span> Planned Purchase</span>
+    </div>`
+
     calendarGrid.innerHTML = html
 
     // Click day to add event
