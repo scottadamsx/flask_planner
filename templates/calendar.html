@@ -1,33 +1,51 @@
 {% extends 'template.html' %}
+
 {% block content %}
-    <h1>Calendar</h1>
+<div class="module-header" style="margin-bottom: 2rem;">
+    <h1><i class="fa-solid fa-calendar-days text-primary"></i> Calendar</h1>
+    <p class="text-secondary">Keep track of your events and deadlines visually.</p>
+</div>
 
-    <div id="calendar-controls">
-        <button type="button" id="prevMonth" class="btn-secondary">&larr; Prev</button>
-        <h2 id="monthLabel"></h2>
-        <button type="button" id="nextMonth" class="btn-secondary">Next &rarr;</button>
-    </div>
+<div id="calendar-controls" class="db-card"
+    style="flex-direction: row; gap: 1.5rem; padding: 1rem; margin-bottom: 2rem;">
+    <button type="button" id="prevMonth" class="btn btn-secondary btn-sm"><i class="fa-solid fa-chevron-left"></i>
+        Prev</button>
+    <h2 id="monthLabel" style="margin: 0; min-width: 180px;"></h2>
+    <button type="button" id="nextMonth" class="btn btn-secondary btn-sm">Next <i
+            class="fa-solid fa-chevron-right"></i></button>
+</div>
 
-    <div id="calendar-grid"></div>
+<div id="calendar-grid" class="db-card" style="padding: 0; overflow: hidden; border-radius: var(--radius);"></div>
 
-    <div id="event-form-overlay" style="display:none">
-        <div id="event-form-card">
-            <h3>Add Event on <span id="selectedDate"></span></h3>
-            <label>Title:</label>
-            <input type="text" id="eventTitle" placeholder="Event title...">
-            <label>Description (optional):</label>
-            <textarea id="eventDescription" placeholder="Details..." rows="2"></textarea>
-            <div class="form-actions">
-                <button type="button" id="saveEvent">Save Event</button>
-                <button type="button" id="cancelEvent" class="btn-secondary">Cancel</button>
-            </div>
+<div id="event-form-overlay" style="display:none; z-index: 1000;">
+    <div id="event-form-card" class="db-card" style="max-width: 400px; width: 90%;">
+        <h3><i class="fa-solid fa-calendar-plus text-primary"></i> Add Event</h3>
+        <p class="text-tertiary" style="margin-bottom: 1.25rem;">Date: <span id="selectedDate"
+                style="font-weight: 600; color: var(--text);"></span></p>
+
+        <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="eventTitle" placeholder="What's happening?">
+        </div>
+
+        <div class="form-group">
+            <label>Description (optional)</label>
+            <textarea id="eventDescription" placeholder="Add more details..." rows="3"></textarea>
+        </div>
+
+        <div class="form-actions" style="margin-top: 2rem;">
+            <button type="button" id="saveEvent" class="btn">Save Event</button>
+            <button type="button" id="cancelEvent" class="btn btn-secondary">Cancel</button>
         </div>
     </div>
+</div>
 
-    <section id="completed-today">
-        <h2>Completed Today</h2>
-        <div id="completed-today-list"></div>
-    </section>
+<section id="completed-today" style="margin-top: 3rem;">
+    <h2 style="margin-bottom: 1.25rem;"><i class="fa-solid fa-check-double text-green"></i> Completed Today</h2>
+    <div id="completed-today-list" class="db-list">
+        <!-- Loaded by calendar.js -->
+    </div>
+</section>
 
-    <script src="{{ url_for('static', filename='calendar.js')}}" type="module"></script>
+<script src="{{ url_for('static', filename='calendar.js')}}" type="module"></script>
 {% endblock %}

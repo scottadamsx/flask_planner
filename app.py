@@ -88,8 +88,23 @@ def calculate_pay_period(transaction_date_str, pay_schedule):
 # ──────────────────────────────────────────
 @app.route("/")
 def home():
-    reminders = loadFromJSON("reminders.json")
-    return render_template("index.html",reminders=reminders)
+    reminders = safe_load("reminders.json")
+    journal = safe_load("journal.json")
+    config = safe_load_config()
+    
+    # Sort reminders by date, get top 3 incomplete
+    incomplete_reminders = [r for r in reminders if not r.get("completed")]
+    incomplete_reminders.sort(key=lambda x: x.get("date", ""))
+    top_reminders = incomplete_reminders[:3]
+    
+    # Get last journal entry
+    last_entry = journal[-1] if journal else None
+    
+    return render_template("index.html", 
+                           reminders=reminders, 
+                           top_reminders=top_reminders,
+                           last_entry=last_entry,
+                           budget_config=config)
 
 @app.route("/journal")
 def journal():

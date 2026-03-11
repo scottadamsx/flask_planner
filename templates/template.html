@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>planner</title>
-    <link rel="stylesheet" href="./static/style.css">
+    <title>Planner | Stay Organized</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <header>
-        <h1>My Planner</h1>
+        <h1><i class="fa-solid fa-calendar-check text-primary"></i> My Planner</h1>
         <nav>
-            <a href="/">Home</a>
-            <a href="journal">Journal</a>
-            <a href="reminders">Reminders</a>
-            <a href="calendar">Calendar</a>
-            <a href="budget">Budget</a>
+            <a href="/"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="/journal"><i class="fa-solid fa-book"></i> Journal</a>
+            <a href="/reminders"><i class="fa-solid fa-bell"></i> Reminders</a>
+            <a href="/calendar"><i class="fa-solid fa-calendar"></i> Calendar</a>
+            <a href="/budget"><i class="fa-solid fa-wallet"></i> Budget</a>
         </nav>
     </header>
     <main>
@@ -22,7 +24,9 @@
         {# Child template content goes here #}
         {% endblock %}
     </main>
-    
 
+    <footer>
+        <p>&copy; 2026 Scott Adams Planner. Built for productivity.</p>
+    </footer>
 </body>
 </html>

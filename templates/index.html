@@ -1,29 +1,122 @@
-{% extends 'template.html' %} <!-- this is the statement to import a base or template from another html file -->
-{% block content %} <!-- this is what you use to add the child blocks, it requires an endblock -->
-    <h1>This is home</h1>
-    <p>An all in one inclusive planner app made my yours truly. Made with Flask. Fuck Django.</p>
+{% extends 'template.html' %}
 
-    <div id="game">
-        <div id="messageBox"></div>
-    <div id="playAgain"></div>
-    <table id="tictactoe">
-        <tr>
-            <td id="tl"></td>
-            <td id="tm"></td>
-            <td id="tr"></td>
-        </tr>
-        <tr>
-            <td id="ml"></td>
-            <td id="mm"></td>
-            <td id="mr"></td>
-        </tr>
-        <tr>
-            <td id="bl"></td>
-            <td id="bm"></td>
-            <td id="br"></td>
-        </tr>
-    </table>
-    <h3>Created by Scott Adams</h3>
-    <script src="{{ url_for('static', filename='tictactoe.js')}}"></script>
+{% block content %}
+<div class="dashboard-header">
+    <h1>Welcome back, Scott</h1>
+    <p class="text-secondary">Here's what's on your plate today.</p>
+</div>
+
+<div class="db-grid">
+    <!-- Reminders Widget -->
+    <div class="db-card col-8">
+        <div class="db-card-header">
+            <h3 class="db-card-title"><i class="fa-solid fa-list-check"></i> Upcoming Reminders</h3>
+            <a href="/reminders" class="db-card-action">View All</a>
+        </div>
+        <div class="db-list">
+            {% if top_reminders %}
+            {% for r in top_reminders %}
+            <div class="db-list-item">
+                <div class="db-list-item-icon">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div class="db-list-item-content">
+                    <div class="db-list-item-title">{{ r.text }}</div>
+                    <div class="db-list-item-subtitle">{{ r.date }}</div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-tertiary">All caught up! No pending reminders.</p>
+            {% endif %}
+        </div>
     </div>
+
+    <!-- Quick Stats Widget -->
+    <div class="db-card col-4">
+        <div class="db-card-header">
+            <h3 class="db-card-title"><i class="fa-solid fa-chart-simple"></i> Planner Stats</h3>
+        </div>
+        <div class="stat-grid">
+            <div class="stat-item">
+                <span class="stat-label">Reminders</span>
+                <span class="stat-value">{{ reminders|length }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Budget Items</span>
+                <span class="stat-value">{{ budget_config.categories|length }}</span>
+            </div>
+        </div>
+        <div style="margin-top: 1.5rem;">
+            <p class="text-secondary" style="font-size: 0.85rem;">Consistency is key to a productive day!</p>
+        </div>
+    </div>
+
+    <!-- Journal Widget -->
+    <div class="db-card col-6">
+        <div class="db-card-header">
+            <h3 class="db-card-title"><i class="fa-solid fa-book-open"></i> Recent Journal</h3>
+            <a href="/journal" class="db-card-action">Write New</a>
+        </div>
+        {% if last_entry %}
+        <div class="journal-snippet" style="background: var(--bg); padding: 1rem; border-radius: var(--radius-sm);">
+            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem;">{{ last_entry.title }}</div>
+            <p class="text-secondary" style="font-size: 0.85rem; line-height: 1.5;">{{ last_entry.content|truncate(150)
+                }}</p>
+            <div class="text-tertiary" style="font-size: 0.75rem; margin-top: 0.75rem;">{{ last_entry.date }}</div>
+        </div>
+        {% else %}
+        <p class="text-tertiary">No journal entries yet. Start your journey today.</p>
+        {% endif %}
+    </div>
+
+    <!-- Budget Quick Link -->
+    <div class="db-card col-6">
+        <div class="db-card-header">
+            <h3 class="db-card-title"><i class="fa-solid fa-wallet"></i> Budget Overview</h3>
+            <a href="/budget" class="db-card-action">Manage</a>
+        </div>
+        <div class="dashboard-budget-info">
+            <p class="text-secondary" style="font-size: 0.9rem; margin-bottom: 1rem;">
+                Tracking <strong>{{ budget_config.recurringBills|length }}</strong> recurring bills this period.
+            </p>
+            <div class="btn-group">
+                <a href="/budget" class="btn btn-secondary btn-sm">Add Transaction</a>
+                <a href="/budget" class="btn btn-sm">View Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr style="border: none; border-top: 1px solid var(--border); margin: 3rem 0;">
+
+<div class="game-section">
+    <div id="game">
+        <div class="db-card-header"
+            style="text-align: center; width: 100%; justify-content: center; margin-bottom: 1.5rem;">
+            <h3 class="db-card-title"><i class="fa-solid fa-gamepad"></i> Take a Break</h3>
+        </div>
+        <div id="messageBox"></div>
+        <div id="playAgain"></div>
+        <table id="tictactoe">
+            <tr>
+                <td id="tl"></td>
+                <td id="tm"></td>
+                <td id="tr"></td>
+            </tr>
+            <tr>
+                <td id="ml"></td>
+                <td id="mm"></td>
+                <td id="mr"></td>
+            </tr>
+            <tr>
+                <td id="bl"></td>
+                <td id="bm"></td>
+                <td id="br"></td>
+            </tr>
+        </table>
+        <h3 class="text-tertiary" style="margin-top: 1rem;">Tic-Tac-Toe by Scott</h3>
+        <script src="{{ url_for('static', filename='tictactoe.js')}}"></script>
+    </div>
+</div>
 {% endblock %}

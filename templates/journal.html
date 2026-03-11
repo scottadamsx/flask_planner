@@ -1,22 +1,39 @@
 {% extends 'template.html' %}
+
 {% block content %}
-    <h1>My Journal</h1>
-    <button id="newJournalEntry" type="button">Add Entry</button>
-    <form id="form" style="display:none">
-        <label>Entry Title: </label>
-        <input type="text" title="name" id="name" placeholder="Give your entry a title...">
-        <label>Entry: </label>
-        <textarea title="entry" id="entry" placeholder="Write your thoughts..." rows="3"></textarea>
-        <div class="form-actions">
-            <button type="button" id="addEntry">Submit Entry</button>
-            <button type="button" id="cancelEntry" class="btn-secondary">Cancel</button>
+<div class="module-header"
+    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h1><i class="fa-solid fa-book"></i> My Journal</h1>
+        <p class="text-secondary">Capture your thoughts, one day at a time.</p>
+    </div>
+    <button id="newJournalEntry" class="btn"><i class="fa-solid fa-plus"></i> New Entry</button>
+</div>
+
+<form id="form" style="display:none; margin-bottom: 2rem;">
+    <div class="db-card">
+        <h3 style="margin-bottom: 1.25rem;">New Journal Entry</h3>
+        <div class="form-group">
+            <label for="name">Title</label>
+            <input type="text" id="name" placeholder="Give your entry a title...">
         </div>
-    </form>
+        <div class="form-group">
+            <label for="entry">Thoughts</label>
+            <textarea id="entry" placeholder="Write your thoughts..." rows="5"></textarea>
+        </div>
+        <div class="form-actions">
+            <button type="button" id="addEntry" class="btn">Save Entry</button>
+            <button type="button" id="cancelEntry" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+</form>
 
-    <section id="entries-section">
-        <h2>Previous Entries</h2>
-        <div id="entries-list"></div>
-    </section>
+<section id="entries-section">
+    <h2 style="margin-bottom: 1.25rem;">Previous Entries</h2>
+    <div id="entries-list" class="journal-grid">
+        <!-- Entries will be loaded here by journal.js -->
+    </div>
+</section>
 
-    <script src="{{ url_for('static', filename='journal.js')}}" type="module"></script>
+<script src="{{ url_for('static', filename='journal.js')}}" type="module"></script>
 {% endblock %}
