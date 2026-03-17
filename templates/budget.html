@@ -1,68 +1,62 @@
 {% extends 'template.html' %}
 {% block content %}
-<div class="module-header" style="margin-bottom: 2rem;">
-    <h1><i class="fa-solid fa-wallet text-primary"></i> Budget Management</h1>
-    <p class="text-secondary">Track spending, manage bills, and simulate your financial future.</p>
+<div class="module-header">
+    <div>
+        <h1><i class="fa-solid fa-wallet text-green"></i> Budget</h1>
+        <p>Track spending, manage bills, and simulate your financial future.</p>
+    </div>
 </div>
 
 <div class="budget-tabs">
-    <button class="budget-tab active" data-tab="dashboard">Dashboard</button>
-    <button class="budget-tab" data-tab="transactions">Transactions</button>
-    <button class="budget-tab" data-tab="reconcile">Reconcile</button>
-    <button class="budget-tab" data-tab="bills-income">Bills & Income</button>
-    <button class="budget-tab" data-tab="simulator">Simulator</button>
+    <button type="button" class="budget-tab active" data-tab="dashboard">Dashboard</button>
+    <button type="button" class="budget-tab" data-tab="transactions">Transactions</button>
+    <button type="button" class="budget-tab" data-tab="reconcile">Reconcile</button>
+    <button type="button" class="budget-tab" data-tab="bills-income">Bills & Income</button>
+    <button type="button" class="budget-tab" data-tab="simulator">Simulator</button>
 </div>
 
 <!-- ========== DASHBOARD TAB ========== -->
 <div class="tab-panel active" id="panel-dashboard">
-    <div id="period-nav" class="db-card"
-        style="flex-direction: row; gap: 1.5rem; padding: 1rem; margin-bottom: 2rem; justify-content: center;">
-        <button type="button" class="btn btn-secondary btn-sm" id="prevPeriod"><i class="fa-solid fa-chevron-left"></i>
-            Prev</button>
-        <h2 id="periodLabel" style="margin: 0; min-width: 280px; text-align: center; font-size: 1.1rem;"></h2>
-        <button type="button" class="btn btn-secondary btn-sm" id="nextPeriod">Next <i
-                class="fa-solid fa-chevron-right"></i></button>
+    <div id="period-nav" class="db-card budget-period-nav">
+        <button type="button" class="btn btn-secondary btn-sm" id="prevPeriod"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+        <h2 id="periodLabel" class="budget-period-label"></h2>
+        <button type="button" class="btn btn-secondary btn-sm" id="nextPeriod">Next <i class="fa-solid fa-chevron-right"></i></button>
     </div>
 
     <div class="summary-cards" id="summaryCards"></div>
 
-    <div class="db-card" style="margin-bottom: 2rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-            <h3 style="margin: 0;"><i class="fa-solid fa-chart-line text-primary"></i> Financial Trend</h3>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <label style="font-size: 0.8rem; color: var(--text-secondary);">Chart Limit:</label>
-                <input type="range" id="chartRangeSlider" min="1000" max="50000" step="1000" value="15000"
-                    style="width: 150px;">
-                <span id="chartRangeValue" style="font-size: 0.85rem; font-weight: 700; min-width: 60px;">$15,000</span>
+    <div class="db-card budget-chart-card">
+        <div class="budget-chart-header">
+            <h3><i class="fa-solid fa-chart-line text-primary"></i> Financial Trend</h3>
+            <div class="budget-chart-controls">
+                <label class="chart-control-label">Limit:</label>
+                <input type="range" id="chartRangeSlider" min="1000" max="50000" step="1000" value="15000" class="chart-slider">
+                <span id="chartRangeValue" class="chart-range-value">$15,000</span>
 
-                <label style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 1rem;">View:</label>
-                <select id="chartTimeline" class="btn btn-secondary btn-sm"
-                    style="background: var(--bg); border: 1px solid var(--border);">
+                <label class="chart-control-label chart-control-spacer">View:</label>
+                <select id="chartTimeline" class="chart-timeline-select">
                     <option value="period">Pay Period</option>
                     <option value="1">1 Month</option>
                     <option value="3" selected>3 Months</option>
                 </select>
             </div>
         </div>
-        <div style="height: 300px; width: 100%;">
+        <div class="budget-chart-container">
             <canvas id="moneyChart"></canvas>
         </div>
     </div>
 
     <div class="dashboard-grid">
         <div class="db-card">
-            <h3 style="margin-bottom: 1.25rem;"><i class="fa-solid fa-chart-pie text-primary"></i> Category Breakdown
-            </h3>
+            <h3 class="budget-section-title"><i class="fa-solid fa-chart-pie text-primary"></i> Category Breakdown</h3>
             <div id="categoryBreakdown"></div>
         </div>
         <div class="db-card">
-            <h3 style="margin-bottom: 1.25rem;"><i class="fa-solid fa-hand-holding-dollar text-red"></i> Bills to Pay
-            </h3>
+            <h3 class="budget-section-title"><i class="fa-solid fa-hand-holding-dollar text-red"></i> Bills to Pay</h3>
             <div id="unpaidBills"></div>
         </div>
-        <div class="db-card" style="grid-column: span 2;">
-            <h3 style="margin-bottom: 1.25rem;"><i class="fa-solid fa-receipt text-primary"></i> Recent Transactions
-            </h3>
+        <div class="db-card dashboard-grid-span-2">
+            <h3 class="budget-section-title"><i class="fa-solid fa-receipt text-primary"></i> Recent Transactions</h3>
             <div id="recentTransactions" class="dashboard-recent"></div>
         </div>
     </div>
@@ -70,9 +64,8 @@
 
 <!-- ========== TRANSACTIONS TAB ========== -->
 <div class="tab-panel" id="panel-transactions">
-    <div class="transactions-toolbar db-card" style="padding: 1rem; margin-bottom: 2rem;">
-        <button type="button" id="logTransactionBtn" class="btn"><i class="fa-solid fa-plus"></i> Log
-            Transaction</button>
+    <div class="transactions-toolbar db-card">
+        <button type="button" id="logTransactionBtn" class="btn"><i class="fa-solid fa-plus"></i> Log Transaction</button>
         <div class="filter-controls">
             <select id="filterType">
                 <option value="all">All Types</option>
@@ -88,9 +81,9 @@
         </div>
     </div>
 
-    <div id="transactionFormWrapper" style="display:none; margin-bottom: 2rem;">
+    <div id="transactionFormWrapper" class="hidden-form budget-form-wrapper">
         <div class="db-card">
-            <h3 id="transFormTitle"><i class="fa-solid fa-edit"></i> Log Transaction</h3>
+            <h3 id="transFormTitle" class="form-card-title"><i class="fa-solid fa-edit"></i> Log Transaction</h3>
             <div class="form-group">
                 <label>Description</label>
                 <input type="text" id="txDesc" placeholder="What was it for?" required>
@@ -102,8 +95,7 @@
             <div class="form-group">
                 <label>Type</label>
                 <div class="radio-group">
-                    <label class="radio-label"><input type="radio" name="txType" value="expense" checked>
-                        Expense</label>
+                    <label class="radio-label"><input type="radio" name="txType" value="expense" checked> Expense</label>
                     <label class="radio-label"><input type="radio" name="txType" value="income"> Income</label>
                     <label class="radio-label"><input type="radio" name="txType" value="future"> Planned</label>
                 </div>
@@ -127,7 +119,7 @@
         </div>
     </div>
 
-    <div class="db-card" style="padding: 0; overflow: hidden;">
+    <div class="db-card table-card">
         <table id="transactionsTable">
             <thead>
                 <tr>
@@ -137,53 +129,50 @@
                     <th class="sortable" data-sort="amount">Amount</th>
                     <th>Type</th>
                     <th>Status</th>
-                    <th style="text-align: right;">Actions</th>
+                    <th class="col-right">Actions</th>
                 </tr>
             </thead>
             <tbody id="transactionsBody"></tbody>
         </table>
     </div>
-    <p id="noTransactions" class="text-tertiary" style="display:none; text-align: center; padding: 2rem;">No
-        transactions yet. Log your first purchase!</p>
+    <p id="noTransactions" class="no-entries hidden-form">No transactions yet. Log your first purchase!</p>
 </div>
 
 <!-- ========== RECONCILE TAB ========== -->
 <div class="tab-panel" id="panel-reconcile">
-    <div class="reconcile-controls db-card" style="padding: 1rem; margin-bottom: 2rem;">
-        <div class="form-group" style="margin: 0; flex: 1;">
-            <label style="margin: 0; margin-bottom: 0.25rem;">Pay Period</label>
-            <select id="reconcilePeriod" style="width: 100%;"></select>
+    <div class="reconcile-controls db-card">
+        <div class="form-group reconcile-period-group">
+            <label>Pay Period</label>
+            <select id="reconcilePeriod"></select>
         </div>
-        <button type="button" id="reconcileSelectedBtn" class="btn"><i class="fa-solid fa-check-double"></i> Reconcile
-            Selected</button>
+        <button type="button" id="reconcileSelectedBtn" class="btn"><i class="fa-solid fa-check-double"></i> Reconcile Selected</button>
     </div>
 
-    <div class="reconcile-summary" id="reconcileSummary" style="margin-bottom: 2rem;"></div>
+    <div class="reconcile-summary" id="reconcileSummary"></div>
 
-    <h3 style="margin-bottom: 1.25rem;"><i class="fa-solid fa-hourglass-half text-orange"></i> Unreconciled</h3>
-    <div class="db-card" style="padding: 0; overflow: hidden; margin-bottom: 3rem;">
+    <h3 class="section-heading"><i class="fa-solid fa-hourglass-half text-orange"></i> Unreconciled</h3>
+    <div class="db-card table-card reconcile-table-section">
         <table id="unreconciledTable">
             <thead>
                 <tr>
-                    <th><input type="checkbox" id="selectAllUnreconciled"></th>
+                    <th><input type="checkbox" id="selectAllUnreconciled" title="Select all"></th>
                     <th>Date</th>
                     <th>Description</th>
                     <th>Category</th>
                     <th>Amount</th>
-                    <th style="text-align: right;">Actions</th>
+                    <th class="col-right">Actions</th>
                 </tr>
             </thead>
             <tbody id="unreconciledBody"></tbody>
         </table>
     </div>
-    <p id="noUnreconciled" class="text-tertiary" style="display:none; text-align: center; padding: 2rem;">All
-        transactions reconciled!</p>
+    <p id="noUnreconciled" class="no-entries hidden-form">All transactions reconciled!</p>
 
     <details class="reconciled-section">
         <summary>
-            <h3 style="display:inline"><i class="fa-solid fa-circle-check text-green"></i> Reconciled</h3>
+            <h3 class="section-heading-inline"><i class="fa-solid fa-circle-check text-green"></i> Reconciled</h3>
         </summary>
-        <div class="db-card" style="padding: 0; overflow: hidden; margin-top: 1rem;">
+        <div class="db-card table-card reconciled-details-table">
             <table id="reconciledTable">
                 <thead>
                     <tr>
@@ -191,26 +180,25 @@
                         <th>Description</th>
                         <th>Category</th>
                         <th>Amount</th>
-                        <th style="text-align: right;">Actions</th>
+                        <th class="col-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="reconciledBody"></tbody>
             </table>
         </div>
-        <p id="noReconciled" class="text-tertiary" style="display:none; text-align: center; padding: 2rem;">No
-            reconciled transactions in this period.</p>
+        <p id="noReconciled" class="no-entries hidden-form">No reconciled transactions in this period.</p>
     </details>
 </div>
 
 <!-- ========== BILLS & INCOME TAB ========== -->
 <div class="tab-panel" id="panel-bills-income">
-    <div class="grid-2-col" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem;">
+    <div class="grid-2-col">
         <div class="config-left">
-            <details class="config-section db-card" style="margin-bottom: 2rem; padding: 0;" open>
-                <summary style="padding: 1.25rem; border-bottom: 1px solid var(--border);">
-                    <h3 style="display:inline"><i class="fa-solid fa-calendar-check"></i> Pay Schedule</h3>
+            <details class="config-section db-card config-card" open>
+                <summary class="config-summary">
+                    <h3 class="section-heading-inline"><i class="fa-solid fa-calendar-check"></i> Pay Schedule</h3>
                 </summary>
-                <div style="padding: 1.25rem;">
+                <div class="config-body">
                     <div class="form-group">
                         <label>Pay Frequency</label>
                         <select id="payFrequency">
@@ -225,24 +213,24 @@
                         <label>Anchor Date (a known payday)</label>
                         <input type="date" id="anchorDate">
                     </div>
-                    <div id="customDaysWrapper" style="display:none" class="form-group">
+                    <div id="customDaysWrapper" class="form-group hidden-form">
                         <label>Days between pay</label>
                         <input type="number" id="customDays" min="1" step="1">
                     </div>
                     <div class="form-actions">
                         <button type="button" id="saveScheduleBtn" class="btn">Save Schedule</button>
                     </div>
-                    <div id="upcomingPaydays" style="margin-top: 1.5rem;"></div>
+                    <div id="upcomingPaydays" class="upcoming-paydays"></div>
                 </div>
             </details>
 
-            <details class="config-section db-card" style="padding: 0;" open>
-                <summary style="padding: 1.25rem; border-bottom: 1px solid var(--border);">
-                    <h3 style="display:inline"><i class="fa-solid fa-tags"></i> Categories</h3>
+            <details class="config-section db-card config-card" open>
+                <summary class="config-summary">
+                    <h3 class="section-heading-inline"><i class="fa-solid fa-tags"></i> Categories</h3>
                 </summary>
-                <div style="padding: 1.25rem;">
-                    <div class="categories-container" id="categoriesContainer" style="margin-bottom: 1.5rem;"></div>
-                    <div class="add-category-row" style="display: flex; gap: 0.5rem;">
+                <div class="config-body">
+                    <div class="categories-container" id="categoriesContainer"></div>
+                    <div class="add-category-row">
                         <input type="text" id="newCategoryInput" placeholder="New category...">
                         <button type="button" id="addCategoryBtn" class="btn btn-sm">Add</button>
                     </div>
@@ -251,23 +239,19 @@
         </div>
 
         <div class="config-right">
-            <details class="config-section db-card" style="margin-bottom: 2rem; padding: 0;" open>
-                <summary style="padding: 1.25rem; border-bottom: 1px solid var(--border); overflow: hidden;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="display:inline"><i class="fa-solid fa-money-bill-trend-up text-green"></i> Income
-                            Sources</h3>
-                        <div style="display:flex; gap:0.5rem;">
-                            <button type="button" id="addIncomeBtn" class="btn btn-sm"><i class="fa-solid fa-plus"></i>
-                                Recurring</button>
-                            <button type="button" id="addOneTimeIncomeBtn" class="btn btn-secondary btn-sm"><i
-                                    class="fa-solid fa-plus"></i> One-Time</button>
+            <details class="config-section db-card config-card" open>
+                <summary class="config-summary">
+                    <div class="config-summary-row">
+                        <h3 class="section-heading-inline"><i class="fa-solid fa-money-bill-trend-up text-green"></i> Income Sources</h3>
+                        <div class="config-summary-actions">
+                            <button type="button" id="addIncomeBtn" class="btn btn-sm"><i class="fa-solid fa-plus"></i> Recurring</button>
+                            <button type="button" id="addOneTimeIncomeBtn" class="btn btn-secondary btn-sm"><i class="fa-solid fa-plus"></i> One-Time</button>
                         </div>
                     </div>
                 </summary>
-                <div style="padding: 0;">
-                    <div id="incomeFormWrapper"
-                        style="display:none; padding: 1.25rem; background: var(--bg); border-bottom: 1px solid var(--border);">
-                        <h4 id="incomeFormTitle" style="margin-bottom: 1rem;">Add Income Source</h4>
+                <div class="config-body-flush">
+                    <div id="incomeFormWrapper" class="hidden-form config-inline-form">
+                        <h4 id="incomeFormTitle" class="config-inline-title">Add Income Source</h4>
                         <div class="form-group">
                             <label>Name</label>
                             <input type="text" id="incomeName" placeholder="e.g. Salary">
@@ -289,18 +273,17 @@
                             <label>Next Payment Date</label>
                             <input type="date" id="incomeNextDate">
                         </div>
-                        <div class="form-actions" style="margin-top: 1.5rem;">
+                        <div class="form-actions">
                             <button type="button" id="submitIncome" class="btn">Save</button>
                             <button type="button" id="cancelIncome" class="btn btn-secondary">Cancel</button>
                         </div>
                     </div>
 
-                    <div id="oneTimeIncomeFormWrapper"
-                        style="display:none; padding: 1.25rem; background: var(--bg); border-bottom: 1px solid var(--border);">
-                        <h4 style="margin-bottom: 1rem;">Log One-Time Income</h4>
+                    <div id="oneTimeIncomeFormWrapper" class="hidden-form config-inline-form">
+                        <h4 class="config-inline-title">Log One-Time Income</h4>
                         <div class="form-group">
                             <label>Description</label>
-                            <input type="text" id="oneTimeIncomeName" placeholder="e.g. Bonus">
+                            <input type="text" id="oneTimeIncomeName" placeholder="e.g. Tax Return, Bonus">
                         </div>
                         <div class="form-group">
                             <label>Amount</label>
@@ -314,7 +297,7 @@
                             <label>Date Received</label>
                             <input type="date" id="oneTimeIncomeDate">
                         </div>
-                        <div class="form-actions" style="margin-top: 1.5rem;">
+                        <div class="form-actions">
                             <button type="button" id="submitOneTimeIncome" class="btn">Save</button>
                             <button type="button" id="cancelOneTimeIncome" class="btn btn-secondary">Cancel</button>
                         </div>
@@ -327,36 +310,31 @@
                                 <th>Amount</th>
                                 <th>Freq</th>
                                 <th>Next Date</th>
-                                <th style="text-align: right;">Actions</th>
+                                <th class="col-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="incomeBody"></tbody>
                     </table>
-                    <p id="noIncome" class="text-tertiary" style="display:none; text-align: center; padding: 2rem;">No
-                        recurring income sources configured.</p>
+                    <p id="noIncome" class="no-entries hidden-form">No recurring income sources configured.</p>
 
-                    <div style="padding: 1.25rem; border-top: 1px solid var(--border);">
-                        <h4 style="margin-bottom: 1rem;">One-Time Income History</h4>
+                    <div class="config-subsection">
+                        <h4 class="config-inline-title">One-Time Income History</h4>
                         <div id="oneTimeIncomeList"></div>
-                        <p id="noOneTimeIncome" class="text-tertiary" style="display:none;">No one-time income logged
-                            yet.</p>
+                        <p id="noOneTimeIncome" class="no-entries hidden-form">No one-time income logged yet.</p>
                     </div>
                 </div>
             </details>
 
-            <details class="config-section db-card" style="padding: 0;" open>
-                <summary style="padding: 1.25rem; border-bottom: 1px solid var(--border); overflow: hidden;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="display:inline"><i class="fa-solid fa-file-invoice-dollar text-red"></i> Recurring
-                            Bills</h3>
-                        <button type="button" id="addBillBtn" class="btn btn-sm"><i class="fa-solid fa-plus"></i> Add
-                            Bill</button>
+            <details class="config-section db-card config-card" open>
+                <summary class="config-summary">
+                    <div class="config-summary-row">
+                        <h3 class="section-heading-inline"><i class="fa-solid fa-file-invoice-dollar text-red"></i> Recurring Bills</h3>
+                        <button type="button" id="addBillBtn" class="btn btn-sm"><i class="fa-solid fa-plus"></i> Add Bill</button>
                     </div>
                 </summary>
-                <div style="padding: 0;">
-                    <div id="billFormWrapper"
-                        style="display:none; padding: 1.25rem; background: var(--bg); border-bottom: 1px solid var(--border);">
-                        <h4 id="billFormTitle" style="margin-bottom: 1rem;">Add Recurring Bill</h4>
+                <div class="config-body-flush">
+                    <div id="billFormWrapper" class="hidden-form config-inline-form">
+                        <h4 id="billFormTitle" class="config-inline-title">Add Recurring Bill</h4>
                         <div class="form-group">
                             <label>Name</label>
                             <input type="text" id="billName" placeholder="e.g. Rent">
@@ -385,13 +363,11 @@
                         <div class="form-group">
                             <label>Auto-Pay</label>
                             <div class="radio-group">
-                                <label class="radio-label"><input type="radio" name="billAutoPay" value="true" checked>
-                                    Yes</label>
-                                <label class="radio-label"><input type="radio" name="billAutoPay" value="false">
-                                    No</label>
+                                <label class="radio-label"><input type="radio" name="billAutoPay" value="true" checked> Yes</label>
+                                <label class="radio-label"><input type="radio" name="billAutoPay" value="false"> No</label>
                             </div>
                         </div>
-                        <div class="form-actions" style="margin-top: 1.5rem;">
+                        <div class="form-actions">
                             <button type="button" id="submitBill" class="btn">Save</button>
                             <button type="button" id="cancelBill" class="btn btn-secondary">Cancel</button>
                         </div>
@@ -404,13 +380,12 @@
                                 <th>Category</th>
                                 <th>Day</th>
                                 <th>Auto</th>
-                                <th style="text-align: right;">Actions</th>
+                                <th class="col-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="billsBody"></tbody>
                     </table>
-                    <p id="noBills" class="text-tertiary" style="display:none; text-align: center; padding: 2rem;">No
-                        recurring bills configured.</p>
+                    <p id="noBills" class="no-entries hidden-form">No recurring bills configured.</p>
                 </div>
             </details>
         </div>
@@ -419,7 +394,7 @@
 
 <!-- ========== SIMULATOR TAB ========== -->
 <div class="tab-panel" id="panel-simulator">
-    <div class="sim-setup db-card" style="padding: 1.5rem; margin-bottom: 2rem;">
+    <div class="sim-setup db-card">
         <div class="sim-field">
             <label>Starting Balance</label>
             <input type="number" id="simStartBalance" step="0.01" placeholder="0.00">
@@ -432,13 +407,12 @@
             <label>End Date</label>
             <input type="date" id="simEndDate">
         </div>
-        <button type="button" id="generateProjection" class="btn"><i class="fa-solid fa-wand-magic-sparkles"></i>
-            Generate Projection</button>
+        <button type="button" id="generateProjection" class="btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate</button>
     </div>
 
-    <div id="simWarning" class="sim-warning" style="display:none; margin-bottom: 1.5rem;"></div>
+    <div id="simWarning" class="sim-warning hidden-form"></div>
 
-    <div class="db-card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
+    <div class="db-card table-card sim-grid-card">
         <table id="simGrid" class="sim-table">
             <thead>
                 <tr>
@@ -446,31 +420,25 @@
                     <th>Description</th>
                     <th>Income (+)</th>
                     <th>Expense (-)</th>
-                    <th style="font-weight: 700;">Balance</th>
-                    <th style="text-align: right;">Actions</th>
+                    <th class="sim-balance-col">Balance</th>
+                    <th class="col-right">Actions</th>
                 </tr>
             </thead>
             <tbody id="simBody"></tbody>
         </table>
     </div>
-    <p id="noSimData" class="text-tertiary" style="text-align: center; padding: 3rem;">Configure settings above and
-        click "Generate Projection" to start.</p>
+    <p id="noSimData" class="no-entries">Configure settings above and click "Generate" to start.</p>
 
-    <div class="sim-actions" id="simActions" style="display:none; justify-content: space-between; align-items: center;">
-        <div style="display: flex; gap: 0.75rem;">
-            <button type="button" id="addSimRow" class="btn btn-secondary"><i class="fa-solid fa-plus"></i> Add
-                Row</button>
-            <button type="button" id="exportCsv" class="btn btn-secondary"><i class="fa-solid fa-file-csv"></i> Export
-                CSV</button>
+    <div class="sim-actions hidden-form" id="simActions">
+        <div class="sim-actions-left">
+            <button type="button" id="addSimRow" class="btn btn-secondary"><i class="fa-solid fa-plus"></i> Add Row</button>
+            <button type="button" id="exportCsv" class="btn btn-secondary"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
         </div>
-        <div style="display: flex; gap: 0.75rem; align-items: center;">
-            <button type="button" id="saveSimBtn" class="btn"><i class="fa-solid fa-floppy-disk"></i> Save
-                Simulation</button>
-            <div class="sim-load"
-                style="padding: 0.5rem; background: var(--bg); border-radius: var(--radius-sm); display: flex; gap: 0.5rem;">
-                <select id="loadSimSelect" style="border: none; background: transparent;"></select>
-                <button type="button" id="deleteSimBtn" class="btn btn-delete btn-sm"><i
-                        class="fa-solid fa-trash"></i></button>
+        <div class="sim-actions-right">
+            <button type="button" id="saveSimBtn" class="btn"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+            <div class="sim-load-group">
+                <select id="loadSimSelect" class="sim-load-select"></select>
+                <button type="button" id="deleteSimBtn" class="btn btn-delete btn-sm" title="Delete simulation"><i class="fa-solid fa-trash"></i></button>
             </div>
         </div>
     </div>

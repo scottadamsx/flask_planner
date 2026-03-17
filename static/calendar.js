@@ -204,7 +204,8 @@ function renderCalendar() {
         cell.addEventListener("click", () => {
             selectedDate = cell.dataset.date
             selectedDateSpan.textContent = selectedDate
-            overlay.style.display = "flex"
+            overlay.className = ""
+overlay.style.display = "flex"
             document.getElementById("eventTitle").focus()
         })
     })
@@ -262,7 +263,8 @@ saveEventBtn.addEventListener("click", async () => {
         body: JSON.stringify({ title, date: selectedDate, description })
     })
 
-    overlay.style.display = "none"
+    overlay.className = "event-overlay-hidden"
+overlay.style.display = ""
     document.getElementById("eventTitle").value = ""
     document.getElementById("eventDescription").value = ""
     await loadAllData()
@@ -271,7 +273,8 @@ saveEventBtn.addEventListener("click", async () => {
 
 // Cancel event form
 cancelEventBtn.addEventListener("click", () => {
-    overlay.style.display = "none"
+    overlay.className = "event-overlay-hidden"
+overlay.style.display = ""
     document.getElementById("eventTitle").value = ""
     document.getElementById("eventDescription").value = ""
 })
@@ -279,7 +282,8 @@ cancelEventBtn.addEventListener("click", () => {
 // Close overlay when clicking outside the card
 overlay.addEventListener("click", (e) => {
     if (e.target === overlay) {
-        overlay.style.display = "none"
+        overlay.className = "event-overlay-hidden"
+overlay.style.display = ""
         document.getElementById("eventTitle").value = ""
         document.getElementById("eventDescription").value = ""
     }

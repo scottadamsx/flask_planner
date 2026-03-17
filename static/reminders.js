@@ -23,8 +23,8 @@ async function loadInReminders() {
 let reminders = await loadInReminders()
 
 newReminderBtn.addEventListener("click", () => {
-    form.style.display = "block"
-    console.log(reminders)
+    form.classList.remove("hidden-form")
+    document.getElementById("name").focus()
 })
 
 addReminderBtn.addEventListener("click", () => {

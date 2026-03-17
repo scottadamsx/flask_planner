@@ -43,6 +43,16 @@ async function post(url, body) {
     })
 }
 
+function showEl(el) {
+    if (typeof el === 'string') el = document.getElementById(el)
+    if (el) { el.classList.remove('hidden-form'); el.style.display = '' }
+}
+
+function hideEl(el) {
+    if (typeof el === 'string') el = document.getElementById(el)
+    if (el) { el.classList.add('hidden-form'); el.style.display = '' }
+}
+
 // ── Data Loading ──
 async function loadAll() {
     const [cfgRes, txRes, simRes] = await Promise.all([
@@ -622,7 +632,7 @@ window.editTransaction = function (id) {
     document.getElementById("txNotes").value = tx.notes || ''
     document.getElementById("transFormTitle").textContent = "Edit Transaction"
     document.getElementById("submitTransaction").textContent = "Save Changes"
-    document.getElementById("transactionFormWrapper").style.display = ''
+    showEl("transactionFormWrapper")
 }
 
 window.convertFuture = async function (id) {
@@ -644,11 +654,11 @@ document.getElementById("logTransactionBtn").addEventListener("click", () => {
     document.getElementById("transFormTitle").textContent = "Log Transaction"
     document.getElementById("submitTransaction").textContent = "Save"
     document.getElementById("txDate").value = toDateStr(new Date())
-    document.getElementById("transactionFormWrapper").style.display = ''
+    showEl("transactionFormWrapper")
 })
 
 document.getElementById("cancelTransaction").addEventListener("click", () => {
-    document.getElementById("transactionFormWrapper").style.display = 'none'
+    hideEl("transactionFormWrapper")
     resetTransactionForm()
 })
 
@@ -679,7 +689,7 @@ document.getElementById("submitTransaction").addEventListener("click", async () 
         await post("/newTransaction", { description: desc, amount, type, category, date: txDate, notes })
     }
 
-    document.getElementById("transactionFormWrapper").style.display = 'none'
+    hideEl("transactionFormWrapper")
     resetTransactionForm()
     await loadAll()
     renderTransactions()
@@ -826,7 +836,7 @@ function renderPaySchedule() {
     document.getElementById("payFrequency").value = sched.type || "biweekly"
     document.getElementById("anchorDate").value = sched.anchorDate || toDateStr(new Date())
     document.getElementById("customDays").value = sched.customDays || 14
-    document.getElementById("customDaysWrapper").style.display = sched.type === "custom" ? '' : 'none'
+    sched.type === "custom" ? showEl("customDaysWrapper") : hideEl("customDaysWrapper")
 
     // Show upcoming paydays
     const upcoming = document.getElementById("upcomingPaydays")
@@ -840,7 +850,7 @@ function renderPaySchedule() {
 }
 
 document.getElementById("payFrequency").addEventListener("change", function () {
-    document.getElementById("customDaysWrapper").style.display = this.value === "custom" ? '' : 'none'
+    this.value === "custom" ? showEl("customDaysWrapper") : hideEl("customDaysWrapper")
 })
 
 document.getElementById("saveScheduleBtn").addEventListener("click", async () => {
@@ -881,11 +891,11 @@ function renderIncomeTable() {
 document.getElementById("addIncomeBtn").addEventListener("click", () => {
     editingIncomeId = null
     document.getElementById("incomeFormTitle").textContent = "Add Income Source"
-    document.getElementById("incomeFormWrapper").style.display = ''
+    showEl("incomeFormWrapper")
 })
 
 document.getElementById("cancelIncome").addEventListener("click", () => {
-    document.getElementById("incomeFormWrapper").style.display = 'none'
+    hideEl("incomeFormWrapper")
     resetIncomeForm()
 })
 
@@ -908,7 +918,7 @@ document.getElementById("submitIncome").addEventListener("click", async () => {
     } else {
         await post("/addIncome", { name, amount, frequency, nextDate })
     }
-    document.getElementById("incomeFormWrapper").style.display = 'none'
+    hideEl("incomeFormWrapper")
     resetIncomeForm()
     await loadAll()
     renderIncomeTable()
@@ -923,7 +933,7 @@ window.editIncome = function (id) {
     document.getElementById("incomeAmount").value = inc.amount
     document.getElementById("incomeFrequency").value = inc.frequency
     document.getElementById("incomeNextDate").value = inc.nextDate
-    document.getElementById("incomeFormWrapper").style.display = ''
+    showEl("incomeFormWrapper")
 }
 
 window.deleteIncome = async function (id) {
@@ -936,11 +946,11 @@ window.deleteIncome = async function (id) {
 // ── One-Time Income ──
 document.getElementById("addOneTimeIncomeBtn").addEventListener("click", () => {
     document.getElementById("oneTimeIncomeDate").value = toDateStr(new Date())
-    document.getElementById("oneTimeIncomeFormWrapper").style.display = ''
+    showEl("oneTimeIncomeFormWrapper")
 })
 
 document.getElementById("cancelOneTimeIncome").addEventListener("click", () => {
-    document.getElementById("oneTimeIncomeFormWrapper").style.display = 'none'
+    hideEl("oneTimeIncomeFormWrapper")
     resetOneTimeIncomeForm()
 })
 
@@ -962,7 +972,7 @@ document.getElementById("submitOneTimeIncome").addEventListener("click", async (
     if (!description || isNaN(amount) || amount <= 0 || !date) return
 
     await post("/newTransaction", { description, amount, type: "income", category, date, notes })
-    document.getElementById("oneTimeIncomeFormWrapper").style.display = 'none'
+    hideEl("oneTimeIncomeFormWrapper")
     resetOneTimeIncomeForm()
     await loadAll()
     renderOneTimeIncomeList()
@@ -1028,11 +1038,11 @@ function renderBillsTable() {
 document.getElementById("addBillBtn").addEventListener("click", () => {
     editingBillId = null
     document.getElementById("billFormTitle").textContent = "Add Recurring Bill"
-    document.getElementById("billFormWrapper").style.display = ''
+    showEl("billFormWrapper")
 })
 
 document.getElementById("cancelBill").addEventListener("click", () => {
-    document.getElementById("billFormWrapper").style.display = 'none'
+    hideEl("billFormWrapper")
     resetBillForm()
 })
 
@@ -1060,7 +1070,7 @@ document.getElementById("submitBill").addEventListener("click", async () => {
     } else {
         await post("/addRecurringBill", { name, amount, category, frequency, startDate, autoPay, notes })
     }
-    document.getElementById("billFormWrapper").style.display = 'none'
+    hideEl("billFormWrapper")
     resetBillForm()
     await loadAll()
     renderBillsTable()
@@ -1078,7 +1088,7 @@ window.editBill = function (id) {
     document.getElementById("billStartDate").value = bill.startDate || toDateStr(new Date())
     document.querySelector(`input[name="billAutoPay"][value="${bill.autoPay}"]`).checked = true
     document.getElementById("billNotes").value = bill.notes || ''
-    document.getElementById("billFormWrapper").style.display = ''
+    showEl("billFormWrapper")
 }
 
 window.deleteBill = async function (id) {

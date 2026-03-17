@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planner | Stay Organized</title>
-    <!-- Font Awesome for Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,24 +15,79 @@
 
 <body>
     <header>
-        <h1><i class="fa-solid fa-calendar-check text-primary"></i> My Planner</h1>
-        <nav>
-            <a href="/"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="/dashboard" class="header-logo">
+            <h1><i class="fa-solid fa-calendar-check"></i> Planner</h1>
+        </a>
+        <nav class="desktop-nav">
+            <a href="/dashboard"><i class="fa-solid fa-house"></i> Dashboard</a>
             <a href="/journal"><i class="fa-solid fa-book"></i> Journal</a>
-            <a href="/reminders"><i class="fa-solid fa-bell"></i> Reminders</a>
+            <a href="/reminders"><i class="fa-solid fa-bell"></i> Tasks</a>
             <a href="/calendar"><i class="fa-solid fa-calendar"></i> Calendar</a>
             <a href="/budget"><i class="fa-solid fa-wallet"></i> Budget</a>
+            {% if session.get('logged_in') %}
+            <a href="/logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            {% endif %}
         </nav>
+        <button class="mobile-menu-btn" aria-label="Toggle menu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
     </header>
+
+    <div class="mobile-nav-overlay"></div>
+    <nav class="mobile-nav">
+        <div class="mobile-nav-header">
+            <h2>Menu</h2>
+            <button class="mobile-close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="mobile-nav-links">
+            <a href="/dashboard"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="/journal"><i class="fa-solid fa-book"></i> Journal</a>
+            <a href="/reminders"><i class="fa-solid fa-bell"></i> Tasks</a>
+            <a href="/calendar"><i class="fa-solid fa-calendar"></i> Calendar</a>
+            <a href="/budget"><i class="fa-solid fa-wallet"></i> Budget</a>
+            {% if session.get('logged_in') %}
+            <a href="/logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            {% endif %}
+        </div>
+    </nav>
+
     <main>
-        {% block content %}
-        {# Child template content goes here #}
-        {% endblock %}
+        {% block content %}{% endblock %}
     </main>
 
     <footer>
-        <p>&copy; 2026 Scott Adams Planner. Built for productivity.</p>
+        <p>&copy; 2026 Scott Adams. Built for productivity.</p>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            const closeBtn = document.querySelector('.mobile-close-btn');
+            const mobileNav = document.querySelector('.mobile-nav');
+            const overlay = document.querySelector('.mobile-nav-overlay');
+
+            if (menuBtn && closeBtn && mobileNav && overlay) {
+                const toggleMenu = () => {
+                    mobileNav.classList.toggle('active');
+                    overlay.classList.toggle('active');
+                    document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+                };
+                menuBtn.addEventListener('click', toggleMenu);
+                closeBtn.addEventListener('click', toggleMenu);
+                overlay.addEventListener('click', toggleMenu);
+            }
+
+            // Highlight active nav link
+            const path = window.location.pathname;
+            document.querySelectorAll('.desktop-nav a, .mobile-nav-links a').forEach(a => {
+                if (a.getAttribute('href') === path) {
+                    a.classList.add('active');
+                    a.style.color = 'var(--text-primary)';
+                    a.style.background = 'var(--bg-raised)';
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

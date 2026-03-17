@@ -1,18 +1,17 @@
 {% extends 'template.html' %}
 
 {% block content %}
-<div class="module-header"
-    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+<div class="module-header">
     <div>
-        <h1><i class="fa-solid fa-book"></i> My Journal</h1>
-        <p class="text-secondary">Capture your thoughts, one day at a time.</p>
+        <h1><i class="fa-solid fa-book text-accent"></i> Journal</h1>
+        <p>Capture your thoughts, one day at a time.</p>
     </div>
-    <button id="newJournalEntry" class="btn"><i class="fa-solid fa-plus"></i> New Entry</button>
+    <button type="button" id="newJournalEntry" class="btn"><i class="fa-solid fa-plus"></i> New Entry</button>
 </div>
 
-<form id="form" style="display:none; margin-bottom: 2rem;">
-    <div class="db-card">
-        <h3 style="margin-bottom: 1.25rem;">New Journal Entry</h3>
+<form id="form" class="hidden-form">
+    <div class="db-card form-card">
+        <h3 class="form-card-title">New Journal Entry</h3>
         <div class="form-group">
             <label for="name">Title</label>
             <input type="text" id="name" placeholder="Give your entry a title...">
@@ -22,17 +21,15 @@
             <textarea id="entry" placeholder="Write your thoughts..." rows="5"></textarea>
         </div>
         <div class="form-actions">
-            <button type="button" id="addEntry" class="btn">Save Entry</button>
+            <button type="button" id="addEntry" class="btn"><i class="fa-solid fa-check"></i> Save Entry</button>
             <button type="button" id="cancelEntry" class="btn btn-secondary">Cancel</button>
         </div>
     </div>
 </form>
 
 <section id="entries-section">
-    <h2 style="margin-bottom: 1.25rem;">Previous Entries</h2>
-    <div id="entries-list" class="journal-grid">
-        <!-- Entries will be loaded here by journal.js -->
-    </div>
+    <h2 class="section-heading">Previous Entries</h2>
+    <div id="entries-list" class="journal-grid"></div>
 </section>
 
 <script src="{{ url_for('static', filename='journal.js')}}" type="module"></script>

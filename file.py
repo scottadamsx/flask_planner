@@ -1,71 +1,67 @@
-import csv
-import json
 import uuid
+import os
+from supabase import create_client
+
+# Initialize Supabase client
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Map old JSON filenames to Supabase table names
+TABLE_MAP = {
+    "reminders.json": "reminders",
+    "events.json": "events",
+    "journal.json": "journal_entries",
+    "transactions.json": "transactions",
+    "simulations.json": "simulations",
+}
 
 
-def saveReminder(FILENAME,reminder):
-    with open(FILENAME,"a",newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(reminder.values())
+def _table(filename):
+    return TABLE_MAP.get(filename, filename)
 
-def readReminders(FILENAME):
-    reminders = []
-    with open(FILENAME,'r',newline="") as file:
-        reader = csv.reader(file)
-        for reminder in reader:
-            reminders.append(reminder)
-        return reminders
-
-def saveToJSON(filename, new_data):
-    try:
-        with open(filename, "r") as f:
-            existing = json.load(f)
-    except FileNotFoundError:
-        existing = []
-
-    existing.append(new_data)
-
-    with open(filename, "w") as f:
-        json.dump(existing, f, indent=4)
-
-def loadFromJSON(FILENAME):
-    with open(FILENAME,"r") as file:
-        data = json.load(file)
-        return data
 
 def generateId():
     return uuid.uuid4().hex[:8]
 
+
+def saveToJSON(filename, new_data):
+    table = _table(filename)
+    supabase.table(table).insert(new_data).execute()
+
+
+def loadFromJSON(filename):
+    table = _table(filename)
+    result = supabase.table(table).select("*").execute()
+    return result.data
+
+
 def updateItemInJSON(filename, item_id, updates):
-    with open(filename, "r") as f:
-        data = json.load(f)
-    for item in data:
-        if item.get("id") == item_id:
-            item.update(updates)
-            break
-    with open(filename, "w") as f:
-        json.dump(data, f, indent=4)
+    table = _table(filename)
+    supabase.table(table).update(updates).eq("id", item_id).execute()
+
 
 def deleteFromJSON(filename, item_id):
-    with open(filename, "r") as f:
-        data = json.load(f)
-    data = [item for item in data if item.get("id") != item_id]
-    with open(filename, "w") as f:
-        json.dump(data, f, indent=4)
+    table = _table(filename)
+    supabase.table(table).delete().eq("id", item_id).execute()
+
+
+def loadBudgetConfig():
+    result = supabase.table("budget_config").select("data").eq("id", 1).execute()
+    if result.data:
+        return result.data[0]["data"]
+    return None
+
+
+def saveBudgetConfig(config):
+    supabase.table("budget_config").upsert({"id": 1, "data": config}).execute()
+
+
+def bulkUpdateTransactions(ids, updates):
+    for tx_id in ids:
+        supabase.table("transactions").update(updates).eq("id", tx_id).execute()
+
 
 def migrateReminders(filename):
-    try:
-        with open(filename, "r") as f:
-            data = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return
-    modified = False
-    for item in data:
-        if "id" not in item:
-            item["id"] = generateId()
-            item["completed"] = False
-            item["completedDate"] = None
-            modified = True
-    if modified:
-        with open(filename, "w") as f:
-            json.dump(data, f, indent=4)
+    # No longer needed with Supabase — data is already structured
+    pass

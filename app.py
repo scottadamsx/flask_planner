@@ -1,10 +1,24 @@
 import json
 from datetime import date, datetime, timedelta
-from flask import Flask, render_template, request, jsonify
-from file import saveToJSON, loadFromJSON, updateItemInJSON, deleteFromJSON, generateId, migrateReminders
+from dotenv import load_dotenv
+load_dotenv()
+
+from file import saveToJSON, loadFromJSON, updateItemInJSON, deleteFromJSON, generateId, migrateReminders, loadBudgetConfig, saveBudgetConfig, bulkUpdateTransactions
+import os
+from functools import wraps
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "super-secret-planner-key")
+APP_PASSWORD = os.environ.get("FLASK_APP_PASSWORD", "planner123")
+
 migrateReminders("reminders.json")
+
+@app.before_request
+def require_login():
+    allowed_routes = ['landing', 'login', 'static']
+    if request.endpoint not in allowed_routes and not session.get('logged_in'):
+        return redirect(url_for('login'))
 
 @app.template_filter('format_date')
 def format_date_filter(date_str):
@@ -26,30 +40,28 @@ def safe_load(filename):
         return []
 
 def safe_load_config():
-    try:
-        return loadFromJSON("budget_config.json")
-    except (FileNotFoundError, json.JSONDecodeError):
-        default = {
-            "paySchedule": {
-                "type": "biweekly",
-                "anchorDate": date.today().isoformat(),
-                "customDays": None
-            },
-            "income": [],
-            "recurringBills": [],
-            "categories": [
-                "Housing", "Groceries", "Transportation", "Utilities",
-                "Entertainment", "Dining Out", "Personal", "Subscriptions",
-                "Health", "Savings", "Debt", "Other"
-            ]
-        }
-        with open("budget_config.json", "w") as f:
-            json.dump(default, f, indent=4)
-        return default
+    config = loadBudgetConfig()
+    if config:
+        return config
+    default = {
+        "paySchedule": {
+            "type": "biweekly",
+            "anchorDate": date.today().isoformat(),
+            "customDays": None
+        },
+        "income": [],
+        "recurringBills": [],
+        "categories": [
+            "Housing", "Groceries", "Transportation", "Utilities",
+            "Entertainment", "Dining Out", "Personal", "Subscriptions",
+            "Health", "Savings", "Debt", "Other"
+        ]
+    }
+    saveBudgetConfig(default)
+    return default
 
 def save_config(config):
-    with open("budget_config.json", "w") as f:
-        json.dump(config, f, indent=4)
+    saveBudgetConfig(config)
 
 # ──────────────────────────────────────────
 # Helper: calculate pay period for a date
@@ -148,7 +160,29 @@ def expand_reminders(reminders, start_dt, end_dt):
 # ──────────────────────────────────────────
 # Existing pages
 # ──────────────────────────────────────────
+# Existing pages
+# ──────────────────────────────────────────
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        if request.form.get("password") == APP_PASSWORD:
+            session['logged_in'] = True
+            return redirect('/dashboard')
+        else:
+            error = "Invalid password. Try again."
+    return render_template("login.html", error=error)
+
+@app.route("/logout")
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
+
 @app.route("/")
+def landing():
+    return render_template("landing.html")
+
+@app.route("/dashboard")
 def home():
     reminders = safe_load("reminders.json")
     journal = safe_load("journal.json")
@@ -324,13 +358,7 @@ def unreconcileTransaction():
 @app.route("/bulkReconcile", methods=["POST"])
 def bulkReconcile():
     data = request.get_json()
-    transactions = safe_load("transactions.json")
-    ids_set = set(data["ids"])
-    for tx in transactions:
-        if tx.get("id") in ids_set:
-            tx["reconciled"] = True
-    with open("transactions.json", "w") as f:
-        json.dump(transactions, f, indent=4)
+    bulkUpdateTransactions(data["ids"], {"reconciled": True})
     return "ok"
 
 # --- Budget Config routes ---

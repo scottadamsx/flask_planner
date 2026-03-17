@@ -1,20 +1,19 @@
 {% extends 'template.html' %}
 
 {% block content %}
-<div class="module-header"
-    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+<div class="module-header">
     <div>
-        <h1><i class="fa-solid fa-bell"></i> Reminders</h1>
-        <p class="text-secondary">Stay on top of your tasks and deadlines.</p>
+        <h1><i class="fa-solid fa-bell text-primary"></i> Tasks</h1>
+        <p>Stay on top of your tasks and deadlines.</p>
     </div>
-    <button id="newReminder" class="btn"><i class="fa-solid fa-plus"></i> New Reminder</button>
+    <button type="button" id="newReminder" class="btn"><i class="fa-solid fa-plus"></i> New Task</button>
 </div>
 
-<form style="display:none; margin-bottom: 2rem;">
-    <div class="db-card">
-        <h3 style="margin-bottom: 1.25rem;">Add New Reminder</h3>
+<form class="hidden-form">
+    <div class="db-card form-card">
+        <h3 class="form-card-title">Add New Task</h3>
         <div class="form-group">
-            <label for="name">Reminder Name</label>
+            <label for="name">Task Name</label>
             <input type="text" id="name" placeholder="What needs to be done?">
         </div>
         <div class="form-group">
@@ -24,93 +23,94 @@
         <div class="form-group">
             <label for="recurrence">Recurrence</label>
             <select id="recurrence">
-                <option value="none">None</option>
+                <option value="none">One-time</option>
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
                 <option value="monthly">Monthly</option>
             </select>
         </div>
         <div class="form-actions">
-            <button type="button" id="addReminder" class="btn">Add Reminder</button>
-            <button type="button" class="btn btn-secondary" onclick="this.form.style.display='none'">Cancel</button>
+            <button type="button" id="addReminder" class="btn"><i class="fa-solid fa-check"></i> Add Task</button>
+            <button type="button" class="btn btn-secondary" onclick="this.closest('form').classList.add('hidden-form')">Cancel</button>
         </div>
     </div>
 </form>
 
 <div class="reminders-container">
-    <section style="margin-bottom: 3rem;">
-        <h2 style="margin-bottom: 1.25rem;"><i class="fa-solid fa-circle-play text-primary"></i> Active Reminders</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Task</th>
-                    <th>Due Date</th>
-                    <th style="text-align: right;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if reminders|selectattr('completed', 'none')|list|length > 0 %}
-                {% for reminder in reminders %}
-                {% if not reminder.completed %}
-                <tr>
-                    <td style="font-weight: 500;">
-                        {{ reminder.name or reminder.text }}
-                        {% if reminder.recurrence and reminder.recurrence != 'none' %}
-                        <span class="category-badge" style="font-size: 0.7rem; margin-left: 0.5rem;">
-                            <i class="fa-solid fa-repeat"></i> {{ reminder.recurrence }}
-                        </span>
-                        {% endif %}
-                    </td>
-                    <td class="text-secondary">{{ reminder.date | format_date }}</td>
-                    <td class="action-cell" style="justify-content: flex-end;">
-                        <button type="button" class="btn btn-complete btn-sm" data-id="{{ reminder.id }}">
-                            <i class="fa-solid fa-check"></i> Complete
-                        </button>
-                        <button type="button" class="btn btn-delete btn-sm" data-id="{{ reminder.id }}">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-                {% endif %}
-                {% endfor %}
-                {% else %}
-                <tr>
-                    <td colspan="3" class="text-tertiary" style="text-align: center; padding: 2rem;">No active
-                        reminders. Great job!</td>
-                </tr>
-                {% endif %}
-            </tbody>
-        </table>
+    <section class="reminders-section">
+        <h2 class="section-heading"><i class="fa-solid fa-circle-play text-primary"></i> Active</h2>
+        <div class="db-card table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Due Date</th>
+                        <th class="col-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set active = reminders|rejectattr('completed')|list %}
+                    {% if active|length > 0 %}
+                    {% for reminder in active %}
+                    <tr>
+                        <td class="task-name">
+                            {{ reminder.name or reminder.text }}
+                            {% if reminder.recurrence and reminder.recurrence != 'none' %}
+                            <span class="category-badge"><i class="fa-solid fa-repeat"></i> {{ reminder.recurrence }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-secondary">{{ reminder.date | format_date }}</td>
+                        <td>
+                            <div class="action-cell">
+                                <button type="button" class="btn btn-complete btn-sm" data-id="{{ reminder.id }}">
+                                    <i class="fa-solid fa-check"></i> Done
+                                </button>
+                                <button type="button" class="btn btn-delete btn-sm" data-id="{{ reminder.id }}" title="Delete task">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="3"><p class="no-entries">No active tasks. You're all caught up!</p></td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
     </section>
 
-    <section>
-        <h2 style="margin-bottom: 1.25rem;"><i class="fa-solid fa-circle-check text-green"></i> Completed</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Task</th>
-                    <th>Due Date</th>
-                    <th>Completed On</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% set completed = reminders|selectattr('completed', 'true')|list %}
-                {% if completed|length > 0 %}
-                {% for reminder in completed %}
-                <tr class="completed-row">
-                    <td>{{ reminder.name or reminder.text }}</td>
-                    <td>{{ reminder.date | format_date }}</td>
-                    <td>{{ reminder.completedDate | format_date }}</td>
-                </tr>
-                {% endfor %}
-                {% else %}
-                <tr>
-                    <td colspan="3" class="text-tertiary" style="text-align: center; padding: 2rem;">No completed tasks
-                        yet.</td>
-                </tr>
-                {% endif %}
-            </tbody>
-        </table>
+    <section class="reminders-section">
+        <h2 class="section-heading"><i class="fa-solid fa-circle-check text-green"></i> Completed</h2>
+        <div class="db-card table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Due Date</th>
+                        <th>Completed On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set completed = reminders|selectattr('completed', 'true')|list %}
+                    {% if completed|length > 0 %}
+                    {% for reminder in completed %}
+                    <tr class="completed-row">
+                        <td>{{ reminder.name or reminder.text }}</td>
+                        <td>{{ reminder.date | format_date }}</td>
+                        <td>{{ reminder.completedDate | format_date }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="3"><p class="no-entries">No completed tasks yet.</p></td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
     </section>
 </div>
 

@@ -14,14 +14,14 @@ textarea.addEventListener("input", () => {
 
 // Show form
 newEntryBtn.addEventListener("click", () => {
-    form.style.display = "block"
+    form.classList.remove("hidden-form")
     newEntryBtn.style.display = "none"
     document.getElementById("name").focus()
 })
 
 // Hide form and reset
 function hideForm() {
-    form.style.display = "none"
+    form.classList.add("hidden-form")
     newEntryBtn.style.display = ""
     document.getElementById("name").value = ""
     textarea.value = ""
